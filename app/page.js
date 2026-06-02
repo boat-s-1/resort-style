@@ -1,169 +1,122 @@
 export default function Home() {
   const therapists = [
-    { name: "Yuna", age: 24, image: "/therapist1.jpg" },
-    { name: "Mio", age: 22, image: "/therapist2.jpg" },
-    { name: "Rina", age: 25, image: "/therapist3.jpg" },
-    { name: "Airi", age: 23, image: "/therapist1.jpg" },
-    { name: "Mika", age: 26, image: "/therapist2.jpg" },
-    { name: "Saki", age: 22, image: "/therapist3.jpg" }
+    { name: "Yuna", image: "/therapist1.jpg" },
+    { name: "Mio", image: "/therapist2.jpg" },
+    { name: "Rina", image: "/therapist3.jpg" }
   ];
 
   return (
     <>
-      {/* HERO */}
+      {/* HEADER LOGO BAR */}
+      <header className="site-header">
+        <div className="menu-trigger">
+          <div>＝</div>
+          <div>MENU</div>
+        </div>
+        <div className="header-logo-wrapper">
+          <div className="header-logo-sub">Luxury Relaxation Salon</div>
+          <div className="header-logo-main">Resort-Style</div>
+        </div>
+        <div className="line-trigger">
+          <div>💬</div>
+          <div>LINE</div>
+        </div>
+      </header>
+
+      {/* HERO SECTION */}
       <section className="hero">
-        <div className="overlay">
-          <h1>Resort-Style</h1>
-          <p>愛知県豊橋市の高級リラクゼーションサロン</p>
-          <div className="hero-info">
-            <p>営業時間 10:00〜翌5:00</p>
-          </div>
-          <a href="#therapists" className="hero-btn">
-            セラピストを見る
-          </a>
+        <div className="hero-content">
+          <p className="hero-sub-title">愛知県豊橋市の高級リラクゼーションサロン</p>
+          <h1 className="hero-main-title">Resort-Style</h1>
+          <div className="hero-ornament">⚜️</div>
+          <p className="hero-hours">営業時間 10:00～翌5:00</p>
         </div>
       </section>
 
-      {/* TODAY */}
+      {/* TODAY'S THERAPISTS */}
       <section className="section">
-        <h2>TODAY'S THERAPIST</h2>
-        <div className="schedule-box">
-          <p>Yuna 12:00〜20:00</p>
-          <p>Mio 15:00〜24:00</p>
-          <p>Rina 18:00〜LAST</p>
-        </div>
-      </section>
+        <h2 className="section-title-en">Today's Therapists</h2>
+        <div className="section-ornament">✧ ⚜️ ✧</div>
+        <p className="section-title-ja">本日の出勤情報</p>
 
-      {/* NEW FACE */}
-      <section className="section">
-        <h2>NEW FACE</h2>
-        <div className="card">
-          <img src="/therapist1.jpg" alt="" />
-          <h3>新人入店</h3>
-          <p>
-            22歳 / T163
+        <div className="info-status-box">
+          <div className="status-icon">📅</div>
+          <div className="status-text">
+            <strong>本日の出勤情報は</strong>
             <br />
-            上品で優しい癒し系セラピスト
-          </p>
+            近日公開予定です。
+          </div>
         </div>
       </section>
 
-      {/* THERAPIST */}
-      <section className="section" id="therapists">
-        <h2>THERAPISTS</h2>
+      {/* THERAPISTS LIST */}
+      <section className="section" style={{ paddingTop: '0px' }}>
+        <h2 className="section-title-en">Therapists</h2>
+        <div className="section-ornament">✧ ⚜️ ✧</div>
+        <p className="section-title-ja">セラピスト一覧</p>
+
         <div className="cards">
           {therapists.map((t, index) => (
             <div className="card" key={index}>
               <img src={t.image} alt={t.name} />
               <h3>{t.name}</h3>
-              <p>{t.age}歳</p>
+              <a href="#" className="card-link">› PROFILE</a>
             </div>
           ))}
         </div>
-      </section>
 
-      {/* ABOUT */}
-      <section className="section">
-        <h2>ABOUT US</h2>
-        <div className="info-box">
-          <p>日常を忘れる、上質なリラクゼーション空間。</p>
-          <br />
-          <p>南国リゾートをイメージした完全個室サロン。</p>
-          <br />
-          <p>洗練されたセラピストによる極上の癒しをご提供します。</p>
+        {/* 6 PREMIUM NAVIGATION BUTTONS */}
+        <div className="submenu-grid">
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">📅</span>
+            <span className="submenu-title-en">SCHEDULE</span>
+            <span className="submenu-title-ja">出勤表</span>
+          </a>
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">🌸</span>
+            <span className="submenu-title-en">NEW FACE</span>
+            <span className="submenu-title-ja">新人情報</span>
+          </a>
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">💎</span>
+            <span className="submenu-title-en">SYSTEM</span>
+            <span className="submenu-title-ja">料金システム</span>
+          </a>
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">👠</span>
+            <span className="submenu-title-en">RECRUIT</span>
+            <span className="submenu-title-ja">求人情報</span>
+          </a>
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">✉️</span>
+            <span className="submenu-title-en">CONTACT</span>
+            <span className="submenu-title-ja">お問い合わせ</span>
+          </a>
+          <a href="#" className="submenu-item">
+            <span className="submenu-icon">🌴</span>
+            <span className="submenu-title-en">BLOG</span>
+            <span className="submenu-title-ja">ブログ・お知らせ</span>
+          </a>
         </div>
       </section>
 
-      {/* GALLERY */}
-      <section className="section">
-        <h2>GALLERY</h2>
-        <div className="cards">
-          <div className="card">
-            <img src="/hero.jpg" alt="" />
+      {/* FIXED DUAL FOOTER BAR */}
+      <div className="dual-footer-bar">
+        <a href="tel:0532-xx-xxxx" className="footer-btn-call">
+          <span style={{ fontSize: '20px' }}>📞</span>
+          <div className="btn-main-text-box">
+            <span className="footer-btn-subtext">お電話でのご予約</span>
+            <span>0532-xx-xxxx</span>
           </div>
-          <div className="card">
-            <img src="/hero.jpg" alt="" />
+        </a>
+        <a href="https://line.me" target="_blank" rel="noopener noreferrer" className="footer-btn-line">
+          <span style={{ fontSize: '24px' }}>💬</span>
+          <div className="btn-main-text-box">
+            <span className="footer-btn-subtext">24時間受付中</span>
+            <span>LINEで予約する</span>
           </div>
-          <div className="card">
-            <img src="/hero.jpg" alt="" />
-          </div>
-        </div>
-      </section>
-
-      {/* PRICE */}
-      <section className="section">
-        <h2>PRICE SYSTEM</h2>
-        <table className="price-table">
-          <tbody>
-            <tr>
-              <th>60分</th>
-              <td>-----</td>
-            </tr>
-            <tr>
-              <th>90分</th>
-              <td>-----</td>
-            </tr>
-            <tr>
-              <th>120分</th>
-              <td>-----</td>
-            </tr>
-            <tr>
-              <th>150分</th>
-              <td>-----</td>
-            </tr>
-            <tr>
-              <th>180分</th>
-              <td>-----</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      {/* RECRUIT */}
-      <section className="section">
-        <h2>RECRUIT</h2>
-        <div className="info-box">
-          <h3>セラピスト募集中</h3>
-          <br />
-          <p>完全自由出勤</p>
-          <p>未経験歓迎</p>
-          <p>高バック率</p>
-          <p>日給30,000円以上可能</p>
-        </div>
-      </section>
-
-      {/* BLOG */}
-      <section className="section">
-        <h2>NEWS</h2>
-        <div className="info-box">
-          <p>2026.06.03 サイトオープン</p>
-          <p>2026.06.01 新人セラピスト入店</p>
-        </div>
-      </section>
-
-      {/* ACCESS */}
-      <section className="section">
-        <h2>ACCESS</h2>
-        <div className="info-box">
-          <p>愛知県豊橋市</p>
-          <br />
-          <p>営業時間 10:00〜翌5:00</p>
-          <br />
-          <p>TEL 0532-xx-xxxx</p>
-        </div>
-      </section>
-
-      <footer>
-        <h3>Resort-Style</h3>
-        <p>Private Relaxation Salon</p>
-        <br />
-        <p>愛知県豊橋市</p>
-        <p>営業時間 10:00〜翌5:00</p>
-      </footer>
-
-      <a href="https://line.me" className="line-btn">
-        LINE予約
-      </a>
+        </a>
+      </div>
     </>
   );
 }
