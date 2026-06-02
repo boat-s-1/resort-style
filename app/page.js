@@ -77,16 +77,18 @@ export default function Home() {
           </table>
         </div>
       </section>
+
       {/* セラピスト一覧 */}
       <section className="section" style={{ paddingTop: '0px' }}>
         <h2 className="section-title-en">Therapists</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
         <p className="section-title-ja">セラピスト一覧</p>
         <div className="cards">
-          {therapists.map((t, index) => (
+          {uniqueTherapists.map((t, index) => (
             <div className="card" key={index}>
-              <img src={t.image} alt={t.name} />
-              <h3>{t.name}</h3>
+              {/* 画像は固定の命名規則にしておくと自動表示できます */}
+              <img src={`/therapist${index + 1}.jpg`} alt={t} onError={(e) => e.target.src = '/default.jpg'} />
+              <h3>{t}</h3>
               <a href="#" className="card-link">› PROFILE</a>
             </div>
           ))}
