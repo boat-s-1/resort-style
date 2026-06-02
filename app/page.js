@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  // スライダー用の画像リスト（画像を追加・変更する場合はここを書き換えてください）
+  // スライダー用の画像リスト（アップロードした画像名に合わせて変更してください）
   const sliderImages = [
     '/hero.jpg',
     '/hero2.jpg',
@@ -16,7 +16,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 4000); // 4000ms = 4秒
+    }, 4000);
     return () => clearInterval(timer);
   }, [sliderImages.length]);
 
@@ -52,14 +52,14 @@ export default function Home() {
             <div
               key={index}
               className={`slide ${index === currentSlide ? 'active' : ''}`}
-              style={{ backgroundImage: url(${image}) }}
+              style={{ backgroundImage: url("${image}") }}
             />
           ))}
           {/* 画像の上に重なる黒いアミ（文字を見やすくするため） */}
           <div className="slider-overlay-layer"></div>
         </div>
 
-        {/* 前面に表示する文字コンテンツ */}
+        {/* 前面に表示する文字コンテンツ（新しいデザイン画像に文字があるため非表示に調整済） */}
         <div className="hero-content">
           <p className="hero-sub-title">愛知県豊橋市の高級リラクゼーションサロン</p>
           <h1 className="hero-main-title">Resort-Style</h1>
