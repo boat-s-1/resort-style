@@ -1,7 +1,6 @@
-/* =========================
-Resort-Style
-Luxury Resort Design
-========================= */
+/* ==========================================
+   Resort-Style: Premium Luxury Spa Edition
+   ========================================== */
 
 * {
   margin: 0;
@@ -11,218 +10,293 @@ Luxury Resort Design
 
 html {
   scroll-behavior: smooth;
+  background-color: #fcfbfa; /* ほんのり温かみのある高級白 */
 }
 
 body {
-  background: #ffffff;
-  color: #333;
-  font-family: "Hiragino Sans", sans-serif;
-  line-height: 1.7;
+  color: #4a3e3d; /* 深みのあるブラウングレーで高級感を */
+  font-family: "Times New Roman", "YuMincho", "ユーザー明朝", "Hiragino Mincho ProN", serif;
+  line-height: 1.8;
+  padding-bottom: 70px; /* 固定フッターの被り防止 */
 }
 
-/* Hero */
+/* --- Header Header Logo Area --- */
+.site-header {
+  background: #ffffff;
+  padding: 15px 20px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid #f0e9df;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.header-logo-wrapper {
+  margin: 0 auto;
+}
+
+.header-logo-sub {
+  font-size: 10px;
+  color: #b89742;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.header-logo-main {
+  font-size: 26px;
+  font-weight: 400;
+  color: #b89742;
+  font-family: "Times New Roman", serif;
+  letter-spacing: 1px;
+}
+
+.menu-trigger, .line-trigger {
+  font-size: 11px;
+  color: #b89742;
+  cursor: pointer;
+  text-align: center;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+/* --- Hero Section --- */
 .hero {
-  min-height: 100vh;
-  background: linear-gradient(
-      rgba(0, 0, 0, 0.35),
-      rgba(0, 0, 0, 0.35)
-    ),
-    url('/hero.jpg');
+  position: relative;
+  min-height: 65vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3)), url('/hero.jpg');
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 40px 20px;
 }
 
-.overlay {
-  color: white;
-  padding: 20px;
+.hero-content {
+  color: #ffffff;
 }
 
-.hero h1 {
-  font-size: 70px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  margin-bottom: 20px;
+.hero-sub-title {
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  font-weight: 300;
 }
 
-.hero p {
-  font-size: 20px;
+.hero-main-title {
+  font-size: 42px;
+  font-family: "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-.hero-info {
-  margin-top: 20px;
+.hero-ornament {
+  color: #b89742;
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.hero-hours {
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  font-weight: 300;
+}
+
+/* --- Section Global --- */
+.section {
+  padding: 50px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-title-en {
+  font-size: 24px;
+  color: #0c8c9e; /* 理想のティールブルー */
+  font-family: "Times New Roman", serif;
+  letter-spacing: 0.15em;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.section-ornament {
+  color: #cdb273;
+  font-size: 14px;
+  margin: 5px 0 8px 0;
+}
+
+.section-title-ja {
+  font-size: 13px;
+  color: #7d706c;
+  letter-spacing: 0.1em;
   margin-bottom: 30px;
 }
 
-.hero-btn {
-  display: inline-block;
-  padding: 14px 36px;
-  background: #d4af37;
-  color: white;
-  text-decoration: none;
-  border-radius: 50px;
-  transition: .3s;
+/* --- Notice Box (Today's Info) --- */
+.info-status-box {
+  background: linear-gradient(to bottom, #fffcf7, #fff9ee);
+  border: 1px solid #dcc9a3;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 3px 10px rgba(220,201,163,0.15);
 }
 
-.hero-btn:hover {
-  opacity: .85;
+.status-icon {
+  font-size: 32px;
+  color: #cdb273;
 }
 
-/* Section */
-
-.section {
-  padding: 90px 20px;
-  max-width: 1200px;
-  margin: auto;
+.status-text {
+  text-align: left;
+  font-size: 15px;
+  color: #5c4e4b;
+  line-height: 1.5;
 }
 
-.section h2 {
-  text-align: center;
-  color: #0aa9b8;
-  font-size: 36px;
-  margin-bottom: 40px;
-}
-
-/* Cards */
-
+/* --- Therapist Grid Cards --- */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr); /* スマホ3列キープ */
+  }
 }
 
 .card {
-  background: white;
-  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #eae2d5;
+  border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, .1);
-  transition: .3s;
-}
-
-.card:hover {
-  transform: translateY(-5px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  text-align: center;
+  padding-bottom: 10px;
 }
 
 .card img {
   width: 100%;
-  height: 320px;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
 }
 
 .card h3 {
-  padding-top: 15px;
-  text-align: center;
+  font-size: 14px;
+  color: #b89742;
+  margin: 8px 0 2px 0;
+  font-weight: 600;
 }
 
-.card p {
-  text-align: center;
-  padding-bottom: 20px;
+.card-link {
+  font-size: 11px;
+  color: #0c8c9e;
+  text-decoration: none;
+  font-weight: bold;
 }
 
-/* Boxes */
-
-.schedule-box,
-.info-box {
-  background: #f8f8f8;
-  padding: 30px;
-  border-left: 6px solid #0aa9b8;
-  border-radius: 12px;
-  text-align: center;
+/* --- Premium Navigation Sub-Menu Grid --- */
+.submenu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 600px;
+  margin: 20px auto 0 auto;
 }
 
-/* Price Table */
-
-.price-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.price-table th {
-  background: #d4af37;
-  color: white;
-}
-
-.price-table th,
-.price-table td {
-  border: 1px solid #ddd;
-  padding: 15px;
-  text-align: center;
-}
-
-/* Contact */
-
-.contact-form {
+.submenu-item {
+  background: #ffffff;
+  border: 1px solid #eadecc;
+  border-radius: 6px;
+  padding: 15px 5px;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
 }
 
-.contact-form input,
-.contact-form textarea {
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 16px;
+.submenu-item:hover {
+  background: #fdfaf4;
 }
 
-.contact-form textarea {
-  min-height: 180px;
+.submenu-icon {
+  font-size: 22px;
+  color: #b89742;
+  margin-bottom: 5px;
 }
 
-.contact-form button {
-  background: #0aa9b8;
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* Footer */
-
-footer {
-  background: #0f1720;
-  color: white;
-  text-align: center;
-  padding: 50px 20px;
-}
-
-/* LINE Button */
-
-.line-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  background: #06c755;
-  color: white;
-  text-decoration: none;
-  padding: 16px 24px;
-  border-radius: 999px;
+.submenu-title-en {
+  font-size: 11px;
   font-weight: bold;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, .25);
-  z-index: 999;
+  color: #b89742;
+  letter-spacing: 0.05em;
 }
 
-/* Mobile */
+.submenu-title-ja {
+  font-size: 9px;
+  color: #8c7f7a;
+}
 
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 42px;
-  }
+/* --- Fix Two-Column Dual Bottom Footer Buttons --- */
+.dual-footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  display: flex;
+  z-index: 1000;
+  box-shadow: 0 -3px 15px rgba(0,0,0,0.15);
+}
 
-  .hero p {
-    font-size: 16px;
-  }
+.footer-btn-call {
+  flex: 1;
+  background: #007687; /* 濃いめの綺麗なティール */
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 15px;
+}
 
-  .section {
-    padding: 60px 15px;
-  }
+.footer-btn-line {
+  flex: 1;
+  background: #06c755; /* LINEグリーン */
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 15px;
+}
 
-  .section h2 {
-    font-size: 28px;
-  }
+.footer-btn-subtext {
+  font-size: 10px;
+  font-weight: normal;
+  display: block;
+  opacity: 0.9;
+}
+
+.btn-main-text-box {
+  text-align: left;
+  line-height: 1.3;
 }
