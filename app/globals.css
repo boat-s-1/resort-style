@@ -4,276 +4,225 @@ Luxury Resort Design
 ========================= */
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 html {
-scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-background: #ffffff;
-color: #333;
-font-family: “Hiragino Sans”, sans-serif;
-line-height: 1.7;
+  background: #ffffff;
+  color: #333;
+  font-family: "Hiragino Sans", sans-serif;
+  line-height: 1.7;
 }
 
 /* Hero */
 
 .hero {
-min-height: 100vh;
-
-background:
-linear-gradient(
-rgba(0,0,0,0.35),
-rgba(0,0,0,0.35)
-),
-url(”/hero.jpg”);
-
-background-size: cover;
-background-position: center;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(
+      rgba(0, 0, 0, 0.35),
+      rgba(0, 0, 0, 0.35)
+    ),
+    url('/hero.jpg');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .overlay {
-color: white;
-padding: 20px;
+  color: white;
+  padding: 20px;
 }
 
 .hero h1 {
-font-size: 70px;
-font-weight: 700;
-letter-spacing: 4px;
-margin-bottom: 20px;
+  font-size: 70px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 20px;
 }
 
 .hero p {
-font-size: 20px;
+  font-size: 20px;
 }
 
 .hero-info {
-margin-top: 20px;
-margin-bottom: 30px;
+  margin-top: 20px;
+  margin-bottom: 30px;
 }
 
 .hero-btn {
-display: inline-block;
-
-padding: 14px 36px;
-
-background: #d4af37;
-color: white;
-
-text-decoration: none;
-
-border-radius: 50px;
-
-transition: .3s;
+  display: inline-block;
+  padding: 14px 36px;
+  background: #d4af37;
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  transition: .3s;
 }
 
 .hero-btn:hover {
-opacity: .85;
+  opacity: .85;
 }
 
 /* Section */
 
 .section {
-padding: 90px 20px;
-max-width: 1200px;
-margin: auto;
+  padding: 90px 20px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 .section h2 {
-text-align: center;
-
-color: #0aa9b8;
-
-font-size: 36px;
-
-margin-bottom: 40px;
+  text-align: center;
+  color: #0aa9b8;
+  font-size: 36px;
+  margin-bottom: 40px;
 }
 
 /* Cards */
 
 .cards {
-display: grid;
-
-grid-template-columns:
-repeat(auto-fit,minmax(250px,1fr));
-
-gap: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
 }
 
 .card {
-background: white;
-
-border-radius: 20px;
-
-overflow: hidden;
-
-box-shadow:
-0 5px 20px rgba(0,0,0,.1);
-
-transition: .3s;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, .1);
+  transition: .3s;
 }
 
 .card:hover {
-transform: translateY(-5px);
+  transform: translateY(-5px);
 }
 
 .card img {
-width: 100%;
-height: 320px;
-object-fit: cover;
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
 }
 
 .card h3 {
-padding-top: 15px;
-text-align: center;
+  padding-top: 15px;
+  text-align: center;
 }
 
 .card p {
-text-align: center;
-padding-bottom: 20px;
+  text-align: center;
+  padding-bottom: 20px;
 }
 
 /* Boxes */
 
 .schedule-box,
 .info-box {
-background: #f8f8f8;
-
-padding: 30px;
-
-border-left: 6px solid #0aa9b8;
-
-border-radius: 12px;
-
-text-align: center;
+  background: #f8f8f8;
+  padding: 30px;
+  border-left: 6px solid #0aa9b8;
+  border-radius: 12px;
+  text-align: center;
 }
 
 /* Price Table */
 
 .price-table {
-width: 100%;
-
-border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .price-table th {
-background: #d4af37;
-color: white;
+  background: #d4af37;
+  color: white;
 }
 
 .price-table th,
 .price-table td {
-border: 1px solid #ddd;
-
-padding: 15px;
-
-text-align: center;
+  border: 1px solid #ddd;
+  padding: 15px;
+  text-align: center;
 }
 
 /* Contact */
 
 .contact-form {
-display: flex;
-flex-direction: column;
-gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .contact-form input,
 .contact-form textarea {
-padding: 15px;
-
-border: 1px solid #ccc;
-
-border-radius: 10px;
-
-font-size: 16px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
 }
 
 .contact-form textarea {
-min-height: 180px;
+  min-height: 180px;
 }
 
 .contact-form button {
-background: #0aa9b8;
-
-color: white;
-
-border: none;
-
-padding: 16px;
-
-border-radius: 10px;
-
-cursor: pointer;
+  background: #0aa9b8;
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 /* Footer */
 
 footer {
-background: #0f1720;
-
-color: white;
-
-text-align: center;
-
-padding: 50px 20px;
+  background: #0f1720;
+  color: white;
+  text-align: center;
+  padding: 50px 20px;
 }
 
 /* LINE Button */
 
 .line-btn {
-position: fixed;
-
-right: 20px;
-bottom: 20px;
-
-background: #06c755;
-
-color: white;
-
-text-decoration: none;
-
-padding: 16px 24px;
-
-border-radius: 999px;
-
-font-weight: bold;
-
-box-shadow:
-0 5px 20px rgba(0,0,0,.25);
-
-z-index: 999;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #06c755;
+  color: white;
+  text-decoration: none;
+  padding: 16px 24px;
+  border-radius: 999px;
+  font-weight: bold;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, .25);
+  z-index: 999;
 }
 
 /* Mobile */
 
-@media (max-width:768px){
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 42px;
+  }
 
-.hero h1{
-font-size:42px;
-}
+  .hero p {
+    font-size: 16px;
+  }
 
-.hero p{
-font-size:16px;
-}
+  .section {
+    padding: 60px 15px;
+  }
 
-.section{
-padding:60px 15px;
-}
-
-.section h2{
-font-size:28px;
-}
-
+  .section h2 {
+    font-size: 28px;
+  }
 }
