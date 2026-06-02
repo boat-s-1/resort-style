@@ -61,117 +61,109 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ABOUT */}
+      <section className="section">
+        <h2>ABOUT US</h2>
+        <div className="info-box">
+          <p>日常を忘れる、上質なリラクゼーション空間。</p>
+          <br />
+          <p>南国リゾートをイメージした完全個室サロン。</p>
+          <br />
+          <p>洗練されたセラピストによる極上の癒しをご提供します。</p>
+        </div>
+      </section>
+
+      {/* GALLERY */}
+      <section className="section">
+        <h2>GALLERY</h2>
+        <div className="cards">
+          <div className="card">
+            <img src="/hero.jpg" alt="" />
+          </div>
+          <div className="card">
+            <img src="/hero.jpg" alt="" />
+          </div>
+          <div className="card">
+            <img src="/hero.jpg" alt="" />
+          </div>
+        </div>
+      </section>
+
+      {/* PRICE */}
+      <section className="section">
+        <h2>PRICE SYSTEM</h2>
+        <table className="price-table">
+          <tbody>
+            <tr>
+              <th>60分</th>
+              <td>-----</td>
+            </tr>
+            <tr>
+              <th>90分</th>
+              <td>-----</td>
+            </tr>
+            <tr>
+              <th>120分</th>
+              <td>-----</td>
+            </tr>
+            <tr>
+              <th>150分</th>
+              <td>-----</td>
+            </tr>
+            <tr>
+              <th>180分</th>
+              <td>-----</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      {/* RECRUIT */}
+      <section className="section">
+        <h2>RECRUIT</h2>
+        <div className="info-box">
+          <h3>セラピスト募集中</h3>
+          <br />
+          <p>完全自由出勤</p>
+          <p>未経験歓迎</p>
+          <p>高バック率</p>
+          <p>日給30,000円以上可能</p>
+        </div>
+      </section>
+
+      {/* BLOG */}
+      <section className="section">
+        <h2>NEWS</h2>
+        <div className="info-box">
+          <p>2026.06.03 サイトオープン</p>
+          <p>2026.06.01 新人セラピスト入店</p>
+        </div>
+      </section>
+
+      {/* ACCESS */}
+      <section className="section">
+        <h2>ACCESS</h2>
+        <div className="info-box">
+          <p>愛知県豊橋市</p>
+          <br />
+          <p>営業時間 10:00〜翌5:00</p>
+          <br />
+          <p>TEL 0532-xx-xxxx</p>
+        </div>
+      </section>
+
+      <footer>
+        <h3>Resort-Style</h3>
+        <p>Private Relaxation Salon</p>
+        <br />
+        <p>愛知県豊橋市</p>
+        <p>営業時間 10:00〜翌5:00</p>
+      </footer>
+
+      <a href="https://line.me" className="line-btn">
+        LINE予約
+      </a>
     </>
   );
-}  </section>
-  {/* ABOUT */}
-  <section className="section">
-    <h2>ABOUT US</h2>
-    <div className="info-box">
-      <p>
-        日常を忘れる、
-        上質なリラクゼーション空間。
-      </p>
-      <br />
-      <p>
-        南国リゾートをイメージした
-        完全個室サロン。
-      </p>
-      <br />
-      <p>
-        洗練されたセラピストによる
-        極上の癒しをご提供します。
-      </p>
-    </div>
-  </section>
-  {/* GALLERY */}
-  <section className="section">
-    <h2>GALLERY</h2>
-    <div className="cards">
-      <div className="card">
-        <img src="/hero.jpg" alt="" />
-      </div>
-      <div className="card">
-        <img src="/hero.jpg" alt="" />
-      </div>
-      <div className="card">
-        <img src="/hero.jpg" alt="" />
-      </div>
-    </div>
-  </section>
-  {/* PRICE */}
-  <section className="section">
-    <h2>PRICE SYSTEM</h2>
-    <table className="price-table">
-      <tbody>
-        <tr>
-          <th>60分</th>
-          <td>-----</td>
-        </tr>
-        <tr>
-          <th>90分</th>
-          <td>-----</td>
-        </tr>
-        <tr>
-          <th>120分</th>
-          <td>-----</td>
-        </tr>
-        <tr>
-          <th>150分</th>
-          <td>-----</td>
-        </tr>
-        <tr>
-          <th>180分</th>
-          <td>-----</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-  {/* RECRUIT */}
-  <section className="section">
-    <h2>RECRUIT</h2>
-    <div className="info-box">
-      <h3>セラピスト募集中</h3>
-      <br />
-      <p>完全自由出勤</p>
-      <p>未経験歓迎</p>
-      <p>高バック率</p>
-      <p>日給30,000円以上可能</p>
-    </div>
-  </section>
-  {/* BLOG */}
-  <section className="section">
-    <h2>NEWS</h2>
-    <div className="info-box">
-      <p>2026.06.03 サイトオープン</p>
-      <p>2026.06.01 新人セラピスト入店</p>
-    </div>
-  </section>
-  {/* ACCESS */}
-  <section className="section">
-    <h2>ACCESS</h2>
-    <div className="info-box">
-      <p>愛知県豊橋市</p>
-      <br />
-      <p>営業時間 10:00〜翌5:00</p>
-      <br />
-      <p>TEL 0532-xx-xxxx</p>
-    </div>
-  </section>
-  <footer>
-    <h3>Resort-Style</h3>
-    <p>Private Relaxation Salon</p>
-    <br />
-    <p>愛知県豊橋市</p>
-    <p>営業時間 10:00〜翌5:00</p>
-  </footer>
-  <a
-    href="https://line.me"
-    className="line-btn"
-  >
-    LINE予約
-  </a>
-</main>
-
-);
 }
