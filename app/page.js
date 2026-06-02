@@ -1,4 +1,25 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export default function Home() {
+  // スライダー用の画像リスト（画像を追加・変更する場合はここを書き換えてください）
+  const sliderImages = [
+    '/hero.jpg',
+    '/hero2.jpg',
+    '/hero3.jpg'
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // 4秒ごとに自動で次の画像に切り替えるタイマー設定
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+    }, 4000); // 4000ms = 4秒
+    return () => clearInterval(timer);
+  }, [sliderImages.length]);
+
   const therapists = [
     { name: "Yuna", image: "/therapist1.jpg" },
     { name: "Mio", image: "/therapist2.jpg" },
@@ -23,8 +44,22 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION (AUTOMATIC FADE SLIDER) */}
       <section className="hero">
+        {/* 背景スライダーの器 */}
+        <div className="slider-container">
+          {sliderImages.map((image, index) => (
+            <div
+              key={index}
+              className={`slide ${index === currentSlide ? 'active' : ''}`}
+              style={{ backgroundImage: url(${image}) }}
+            />
+          ))}
+          {/* 画像の上に重なる黒いアミ（文字を見やすくするため） */}
+          <div className="slider-overlay-layer"></div>
+        </div>
+
+        {/* 前面に表示する文字コンテンツ */}
         <div className="hero-content">
           <p className="hero-sub-title">愛知県豊橋市の高級リラクゼーションサロン</p>
           <h1 className="hero-main-title">Resort-Style</h1>
