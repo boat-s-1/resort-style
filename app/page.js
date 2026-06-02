@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  // スライダー用の画像リスト（アップロードした画像名に合わせて変更してください）
+  // スライダー用の画像リスト
   const sliderImages = [
     '/hero.jpg',
     '/hero2.jpg',
@@ -52,7 +52,7 @@ export default function Home() {
             <div
               key={index}
               className={`slide ${index === currentSlide ? 'active' : ''}`}
-              style={{ backgroundImage: url("${image}") }}
+              style={{ backgroundImage: 'url(' + image + ')' }}
             />
           ))}
           {/* 画像の上に重なる黒いアミ（文字を見やすくするため） */}
