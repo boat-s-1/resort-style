@@ -1,68 +1,69 @@
 export default function Home() {
-const therapists = [
-{ name: “Yuna”, age: 24, image: “/therapist1.jpg” },
-{ name: “Mio”, age: 22, image: “/therapist2.jpg” },
-{ name: “Rina”, age: 25, image: “/therapist3.jpg” },
-{ name: “Airi”, age: 23, image: “/therapist1.jpg” },
-{ name: “Mika”, age: 26, image: “/therapist2.jpg” },
-{ name: “Saki”, age: 22, image: “/therapist3.jpg” }
-];
+  const therapists = [
+    { name: "Yuna", age: 24, image: "/therapist1.jpg" },
+    { name: "Mio", age: 22, image: "/therapist2.jpg" },
+    { name: "Rina", age: 25, image: "/therapist3.jpg" },
+    { name: "Airi", age: 23, image: "/therapist1.jpg" },
+    { name: "Mika", age: 26, image: "/therapist2.jpg" },
+    { name: "Saki", age: 22, image: "/therapist3.jpg" }
+  ];
 
-return (
-  {/* HERO */}
-  <section className="hero">
-    <div className="overlay">
-      <h1>Resort-Style</h1>
-      <p>愛知県豊橋市の高級リラクゼーションサロン</p>
-      <div className="hero-info">
-        <p>営業時間 10:00〜翌5:00</p>
-      </div>
-      <a href="#therapists" className="hero-btn">
-        セラピストを見る
-      </a>
-    </div>
-  </section>
-  {/* TODAY */}
-  <section className="section">
-    <h2>TODAY'S THERAPIST</h2>
-    <div className="schedule-box">
-      <p>Yuna 12:00〜20:00</p>
-      <p>Mio 15:00〜24:00</p>
-      <p>Rina 18:00〜LAST</p>
-    </div>
-  </section>
-  {/* NEW FACE */}
-  <section className="section">
-    <h2>NEW FACE</h2>
-    <div className="card">
-      <img src="/therapist1.jpg" alt="" />
-      <h3>新人入店</h3>
-      <p>
-        22歳 / T163
-        <br />
-        上品で優しい癒し系セラピスト
-      </p>
-    </div>
-  </section>
-  {/* THERAPIST */}
-  <section
-    className="section"
-    id="therapists"
-  >
-    <h2>THERAPISTS</h2>
-    <div className="cards">
-      {therapists.map((t, index) => (
-        <div className="card" key={index}>
-          <img
-            src={t.image}
-            alt={t.name}
-          />
-          <h3>{t.name}</h3>
-          <p>{t.age}歳</p>
+  return (
+    <>
+      {/* HERO */}
+      <section className="hero">
+        <div className="overlay">
+          <h1>Resort-Style</h1>
+          <p>愛知県豊橋市の高級リラクゼーションサロン</p>
+          <div className="hero-info">
+            <p>営業時間 10:00〜翌5:00</p>
+          </div>
+          <a href="#therapists" className="hero-btn">
+            セラピストを見る
+          </a>
         </div>
-      ))}
-    </div>
-  </section>
+      </section>
+
+      {/* TODAY */}
+      <section className="section">
+        <h2>TODAY'S THERAPIST</h2>
+        <div className="schedule-box">
+          <p>Yuna 12:00〜20:00</p>
+          <p>Mio 15:00〜24:00</p>
+          <p>Rina 18:00〜LAST</p>
+        </div>
+      </section>
+
+      {/* NEW FACE */}
+      <section className="section">
+        <h2>NEW FACE</h2>
+        <div className="card">
+          <img src="/therapist1.jpg" alt="" />
+          <h3>新人入店</h3>
+          <p>
+            22歳 / T163
+            <br />
+            上品で優しい癒し系セラピスト
+          </p>
+        </div>
+      </section>
+
+      {/* THERAPIST */}
+      <section className="section" id="therapists">
+        <h2>THERAPISTS</h2>
+        <div className="cards">
+          {therapists.map((t, index) => (
+            <div className="card" key={index}>
+              <img src={t.image} alt={t.name} />
+              <h3>{t.name}</h3>
+              <p>{t.age}歳</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}  </section>
   {/* ABOUT */}
   <section className="section">
     <h2>ABOUT US</h2>
