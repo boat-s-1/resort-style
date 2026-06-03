@@ -23,31 +23,41 @@ export default function TherapistProfile() {
       });
   }, [therapistName]);
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (!profile) return <div className="error">セラピスト情報が見つかりません。</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!profile) return <div>セラピストが見つかりません。</div>;
 
   return (
     <div className="profile-container">
       <a href="/" className="back-link">← BACK TO HOME</a>
       
       <div className="profile-card">
-        <div className="profile-image-wrapper">
-          <img src={profile.image_url} alt={profile.name} className="profile-image" />
+        <img src={profile.image_url} alt={profile.name} className="profile-image" />
+        <h1 className="profile-name">{profile.name} <span style={{fontSize:'16px'}}>({profile.age}歳)</span></h1>
+        <p className="nomination-fee">指名料：{profile.nomination_fee}円</p>
+        
+        <div className="sns-links">
+          {profile.x_url && <a href={profile.x_url} target="_blank">X</a>}
+          {profile.insta_url && <a href={profile.insta_url} target="_blank">Instagram</a>}
+          {profile.bsky_url && <a href={profile.bsky_url} target="_blank">Bluesky</a>}
         </div>
-        <h1 className="profile-name">{profile.name}</h1>
-        <div className="profile-divider">✧ ⚜️ ✧</div>
+
+        <div className="shop-comment">
+          <h4>店長からの紹介</h4>
+          <p>{profile.comment}</p>
+        </div>
+
         <p className="profile-text">{profile.profile_text}</p>
       </div>
 
       <style jsx>{`
-        .profile-container { padding: 40px 20px; max-width: 700px; margin: 0 auto; background: #fafafa; min-height: 100vh; }
-        .back-link { color: #cdb273; text-decoration: none; font-size: 14px; letter-spacing: 1px; }
-        .profile-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-top: 20px; text-align: center; }
-        .profile-image-wrapper { width: 200px; height: 200px; margin: 0 auto 30px; border-radius: 50%; overflow: hidden; border: 3px solid #cdb273; }
-        .profile-image { width: 100%; height: 100%; object-fit: cover; }
-        .profile-name { font-size: 28px; color: #333; margin-bottom: 10px; }
-        .profile-divider { color: #cdb273; margin-bottom: 20px; }
-        .profile-text { font-size: 16px; line-height: 2; color: #666; white-space: pre-wrap; text-align: left; }
+        .profile-container { padding: 40px 20px; max-width: 600px; margin: 0 auto; background: #fafafa; }
+        .profile-card { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .profile-image { width: 150px; height: 150px; border-radius: 50%; border: 3px solid #cdb273; object-fit: cover; }
+        .nomination-fee { color: #cdb273; font-weight: bold; margin: 10px 0; }
+        .sns-links { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .sns-links a { color: #333; text-decoration: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+        .shop-comment { background: #fdfbf7; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
+        .profile-text { text-align: left; line-height: 1.8; white-space: pre-wrap; }
       `}</style>
     </div>
   );
