@@ -9,6 +9,7 @@ export default function Home() {
   const sliderImages = ['/hero.jpg', '/hero2.jpg', '/hero3.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  
   // ★追加：日付を「6/3（水）」形式に変換する関数
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
