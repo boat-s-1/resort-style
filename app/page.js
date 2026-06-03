@@ -105,6 +105,27 @@ useEffect(() => {
           ))}
         </div>
 
+            <div className="price-section" style={{ marginTop: '50px', padding: '20px', background: '#fff', borderRadius: '15px', border: '1px solid #eee' }}>
+          <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>料金システム</h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '15px 0' }}>60分コース</td>
+                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥10,000</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '15px 0' }}>90分コース</td>
+                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥14,000</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '15px 0' }}>120分コース</td>
+                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥18,000</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style={{ fontSize: '12px', color: '#888', marginTop: '15px', textAlign: 'center' }}>※指名料は別途かかります</p>
+        </div>
+
         <div className="submenu-grid">
           <a href="#" className="submenu-item"><span className="submenu-icon">📅</span><span className="submenu-title-en">SCHEDULE</span><span className="submenu-title-ja">出勤表</span></a>
           <a href="#" className="submenu-item"><span className="submenu-icon">🌸</span><span className="submenu-title-en">NEW FACE</span><span className="submenu-title-ja">新人情報</span></a>
