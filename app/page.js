@@ -1,16 +1,14 @@
 'use client';
-export const dynamic = 'force-dynamic'; // ★これを追加
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+
 export default function Home() {
   const [scheduleData, setScheduleData] = useState([]);
   const [events, setEvents] = useState([]);
-  const [profiles, setProfiles] = useState([]);
   const sliderImages = ['/hero.jpg', '/hero2.jpg', '/hero3.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  
-  // ★追加：日付を「6/3（水）」形式に変換する関数
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -19,19 +17,17 @@ export default function Home() {
     return `${month}/${day}（${dayOfWeek}）`;
   };
 
-useEffect(() => {
-    // データ取得
+  useEffect(() => {
     fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
       .then(res => res.json())
       .then(data => {
-  if (data) {
-    if (data.schedule) setScheduleData(data.schedule);
-    if (data.events) setEvents(data.events); // ★ここを追加
-  }
-})
+        if (data) {
+          if (data.schedule) setScheduleData(data.schedule);
+          if (data.events) setEvents(data.events);
+        }
+      })
       .catch(err => console.error("読み込みエラー:", err));
 
-    // スライダー
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 4000);
@@ -60,19 +56,20 @@ useEffect(() => {
           <div className="slider-overlay-layer"></div>
         </div>
       </section>
-{/* イベント情報エリア */}
-        {events && events.length > 0 && (
-          <div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273' }}>
-            <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
-            {events.map((e, idx) => (
-              <div key={idx} style={{ marginBottom: '15px' }}>
-                <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
-                <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
-                <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
-              </div>
-            ))}
-          </div>
-        )}
+
+      {/* イベント情報エリア */}
+      {events && events.length > 0 && (
+        <div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273', maxWidth: '800px', margin: '50px auto' }}>
+          <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
+          {events.map((e, idx) => (
+            <div key={idx} style={{ marginBottom: '15px' }}>
+              <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
+              <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
+              <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
+            </div>
+          ))}
+        </div>
+      )}
 
       <section className="section">
         <h2 className="section-title-en">Schedule</h2>
@@ -84,7 +81,6 @@ useEffect(() => {
             <thead>
               <tr>
                 <th style={{ padding: '8px', borderBottom: '2px solid #cdb273', textAlign: 'left' }}>Therapist</th>
-                {/* ★修正：ヘッダーでformatDateを使用 */}
                 {dates.map(d => <th key={d} style={{ padding: '8px', borderBottom: '2px solid #cdb273', whiteSpace: 'nowrap' }}>{formatDate(d)}</th>)}
               </tr>
             </thead>
@@ -106,11 +102,11 @@ useEffect(() => {
           </table>
         </div>
       </section>
-      {/* セラピスト一覧 */}
+
       <section className="section" style={{ paddingTop: '0px' }}>
         <h2 className="section-title-en">Therapists</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
-      <p className="section-title-ja">セラピスト一覧</p>
+        <p className="section-title-ja">セラピスト一覧</p>
         <div className="cards">
           {uniqueTherapists.map((t, index) => (
             <div className="card" key={index}>
@@ -121,10 +117,8 @@ useEffect(() => {
           ))}
         </div>
 
-          <div className="price-section" style={{ marginTop: '50px', padding: '30px 20px', background: '#fff', borderRadius: '15px', border: '1px solid #eee' }}>
+        <div className="price-section" style={{ marginTop: '50px', padding: '30px 20px', background: '#fff', borderRadius: '15px', border: '1px solid #eee' }}>
           <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '30px' }}>料金システム</h2>
-          
-          {/* 各コースエリア */}
           {[
             { title: "ノーマルコース", desc: "丁寧な揉みほぐしで全身の疲れを癒やします。", prices: [["60分", "10,000円"], ["90分", "14,000円"], ["120分", "18,000円"]] },
             { title: "とろふわコース", desc: "とろけるような感覚をお楽しみください。", prices: [["90分", "18,000円"], ["120分", "23,000円"]] },
@@ -140,8 +134,6 @@ useEffect(() => {
               </table>
             </div>
           ))}
-
-          {/* 追加料金エリア */}
           <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #eee', fontSize: '14px', color: '#555' }}>
             <h4 style={{ marginBottom: '10px' }}>■ その他・オプション</h4>
             <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2' }}>
@@ -153,7 +145,7 @@ useEffect(() => {
             </ul>
           </div>
         </div>
-       
+      </section>
 
       <div className="dual-footer-bar">
         <a href="tel:0532-xx-xxxx" className="footer-btn-call">
