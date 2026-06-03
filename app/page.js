@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [scheduleData, setScheduleData] = useState([]);
+  const [events, setEvents] = useState([]);
   const sliderImages = ['/hero.jpg', '/hero2.jpg', '/hero3.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -21,11 +22,11 @@ useEffect(() => {
     fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
       .then(res => res.json())
       .then(data => {
-        // ★ここが重要：JSONの中の「schedule」を取り出すように変更します
-        if (data && data.schedule) {
-          setScheduleData(data.schedule);
-        }
-      })
+  if (data) {
+    if (data.schedule) setScheduleData(data.schedule);
+    if (data.events) setEvents(data.events); // ★ここを追加
+  }
+})
       .catch(err => console.error("読み込みエラー:", err));
 
     // スライダー
@@ -57,16 +58,17 @@ useEffect(() => {
           <div className="slider-overlay-layer"></div>
         </div>
       </section>
-<div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273' }}>
-          <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
-          {events.map((e, idx) => (
-            <div key={idx} style={{ marginBottom: '15px' }}>
-              <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
-              <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
-              <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
-            </div>
-          ))}
-        </div>
+{/* 修正後 */}
+<div className="event-section" style={{ ... }}>
+  <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
+  {events && events.map((e, idx) => ( // ★ここを修正
+    <div key={idx} style={{ marginBottom: '15px' }}>
+      <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
+      <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
+      <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
+    </div>
+  ))}
+</div>
       <section className="section">
         <h2 className="section-title-en">Schedule</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
