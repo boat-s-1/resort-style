@@ -1,33 +1,31 @@
 'use client';
 
+export const dynamic = 'force-dynamic'; // これを追加！
+
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-
-// この関数がNext.jsに「どのページを作るか」を教えます
-export async function generateStaticParams() {
-  // 本来はここでFetchしますが、簡易的に一覧を管理している場合は
-  // ビルド時に取得するか、動的生成設定を調整します。
-  return []; 
-}
 
 export default function TherapistProfile() {
   const params = useParams();
   const therapistName = decodeURIComponent(params.name);
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
       .then(res => res.json())
       .then(data => {
-        // data.profiles が存在することを確認
         if (data && data.profiles) {
           const found = data.profiles.find(p => p.name === therapistName);
           setProfile(found);
         }
-      });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [therapistName]);
 
-  if (!profile) return <div>読み込み中...</div>;
+  if (loading) return <div style={{ padding: '20px' }}>読み込み中...</div>;
+  if (!profile) return <div style={{ padding: '20px' }}>セラピストが見つかりません。</div>;
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
