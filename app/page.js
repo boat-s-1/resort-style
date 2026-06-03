@@ -60,7 +60,7 @@ useEffect(() => {
         </div>
       </section>
 {/* 修正後 */}
-<div className="event-section" style={{ ... }}>
+<div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273' }}>
   <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
 {events && events.length > 0 && events.map((e, idx) => (
   <div key={idx} style={{ marginBottom: '15px' }}>
