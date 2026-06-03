@@ -16,12 +16,19 @@ export default function Home() {
     return `${month}/${day}（${dayOfWeek}）`;
   };
 
-  useEffect(() => {
+useEffect(() => {
+    // データ取得
     fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
       .then(res => res.json())
-      .then(data => setScheduleData(data))
+      .then(data => {
+        // ★ここが重要：JSONの中の「schedule」を取り出すように変更します
+        if (data && data.schedule) {
+          setScheduleData(data.schedule);
+        }
+      })
       .catch(err => console.error("読み込みエラー:", err));
 
+    // スライダー
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 4000);
