@@ -1,10 +1,11 @@
 'use client';
+export const dynamic = 'force-dynamic'; // ★これを追加
 
 import { useState, useEffect } from 'react';
-
 export default function Home() {
   const [scheduleData, setScheduleData] = useState([]);
   const [events, setEvents] = useState([]);
+  const [profiles, setProfiles] = useState([]);
   const sliderImages = ['/hero.jpg', '/hero2.jpg', '/hero3.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -61,13 +62,13 @@ useEffect(() => {
 {/* 修正後 */}
 <div className="event-section" style={{ ... }}>
   <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
-  {events && events.map((e, idx) => ( // ★ここを修正
-    <div key={idx} style={{ marginBottom: '15px' }}>
-      <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
-      <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
-      <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
-    </div>
-  ))}
+{events && events.length > 0 && events.map((e, idx) => (
+  <div key={idx} style={{ marginBottom: '15px' }}>
+    <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
+    <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
+    <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
+  </div>
+))}
 </div>
       <section className="section">
         <h2 className="section-title-en">Schedule</h2>
