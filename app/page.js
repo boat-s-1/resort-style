@@ -87,17 +87,14 @@ export default function Home() {
       <section className="section" style={{ paddingTop: '0px' }}>
         <h2 className="section-title-en">Therapists</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
-       <p className="section-title-ja">セラピスト一覧</p>
+      <p className="section-title-ja">セラピスト一覧</p>
         <div className="cards">
           {uniqueTherapists.map((t, index) => (
             <div className="card" key={index}>
               <img src={`/therapist${index + 1}.jpg`} alt={t} onError={(e) => e.target.src = '/default.jpg'} />
               <h3>{t}</h3>
-              {/* リンク先を therapist/名前 に指定 */}
               <a href={`/therapist/${t}`} className="card-link">› PROFILE</a>
             </div>
-          ))}
-        </div>
           ))}
         </div>
 
