@@ -90,12 +90,13 @@ export default function Home() {
         <p className="section-title-ja">セラピスト一覧</p>
         <div className="cards">
           {uniqueTherapists.map((t, index) => (
-            <div className="card" key={index}>
-              {/* 画像は固定の命名規則にしておくと自動表示できます */}
-              <img src={`/therapist${index + 1}.jpg`} alt={t} onError={(e) => e.target.src = '/default.jpg'} />
-              <h3>{t}</h3>
-              <a href="#" className="card-link">› PROFILE</a>
-            </div>
+          {/* カード部分の修正例 */}
+<div className="card" key={index}>
+  <img src={`/therapist${index + 1}.jpg`} alt={t} />
+  <h3>{t}</h3>
+  {/* ここでリンク先を therapist/名前 に指定 */}
+  <a href={`/therapist/${t}`} className="card-link">› PROFILE</a>
+</div>
           ))}
         </div>
 
