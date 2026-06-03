@@ -153,7 +153,6 @@ useEffect(() => {
           </div>
         </div>
        
-      </section>
 
       <div className="dual-footer-bar">
         <a href="tel:0532-xx-xxxx" className="footer-btn-call">
