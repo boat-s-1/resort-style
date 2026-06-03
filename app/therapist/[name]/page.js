@@ -11,13 +11,18 @@ export default function TherapistProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
       .then(res => res.json())
       .then(data => {
-        if (data && data.profiles) {
-          const found = data.profiles.find(p => p.name === therapistName);
-          setProfile(found);
+        if (data) {
+          // 1. プロフィールを探す
+          const foundProfile = data.profiles.find(p => p.name === therapistName);
+          setProfile(foundProfile);
+
+          // 2. ★追加：その子の出勤スケジュールだけを抽出
+          const foundSchedule = data.schedule.filter(s => s.therapist_name === therapistName);
+          setSchedule(foundSchedule); // ※stateに schedule を追加してください
         }
         setLoading(false);
       });
@@ -47,6 +52,18 @@ export default function TherapistProfile() {
         </div>
 
         <p className="profile-text">{profile.profile_text}</p>
+      </div>
+
+            <div className="schedule-area" style={{ marginTop: '30px', background: 'white', padding: '20px', borderRadius: '20px' }}>
+        <h3 style={{ textAlign: 'center', color: '#cdb273' }}>{therapistName}の出勤予定</h3>
+        <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse' }}>
+          {schedule.map((s, idx) => (
+            <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+              <td style={{ padding: '10px' }}>{s.date}</td>
+              <td style={{ padding: '10px', textAlign: 'right' }}>{s.status}</td>
+            </tr>
+          ))}
+        </table>
       </div>
 
       <style jsx>{`
