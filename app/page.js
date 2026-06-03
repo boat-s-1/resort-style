@@ -57,7 +57,16 @@ useEffect(() => {
           <div className="slider-overlay-layer"></div>
         </div>
       </section>
-
+<div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273' }}>
+          <h2 style={{ textAlign: 'center', color: '#cdb273', marginBottom: '20px' }}>✨ EVENT INFORMATION</h2>
+          {events.map((e, idx) => (
+            <div key={idx} style={{ marginBottom: '15px' }}>
+              <h4 style={{ margin: '0', color: '#333' }}>{e.title}</h4>
+              <p style={{ fontSize: '13px', color: '#666', margin: '5px 0' }}>{e.description}</p>
+              <small style={{ color: '#cdb273' }}>期間：{e.period}</small>
+            </div>
+          ))}
+        </div>
       <section className="section">
         <h2 className="section-title-en">Schedule</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
