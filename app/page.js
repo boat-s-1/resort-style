@@ -73,7 +73,7 @@ useEffect(() => {
             ))}
           </div>
         )}
-</div>
+
       <section className="section">
         <h2 className="section-title-en">Schedule</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
