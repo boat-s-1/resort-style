@@ -152,14 +152,7 @@ useEffect(() => {
             </ul>
           </div>
         </div>
-        <div className="submenu-grid">
-          <a href="#" className="submenu-item"><span className="submenu-icon">📅</span><span className="submenu-title-en">SCHEDULE</span><span className="submenu-title-ja">出勤表</span></a>
-          <a href="#" className="submenu-item"><span className="submenu-icon">🌸</span><span className="submenu-title-en">NEW FACE</span><span className="submenu-title-ja">新人情報</span></a>
-          <a href="#" className="submenu-item"><span className="submenu-icon">💎</span><span className="submenu-title-en">SYSTEM</span><span className="submenu-title-ja">料金システム</span></a>
-          <a href="#" className="submenu-item"><span className="submenu-icon">👠</span><span className="submenu-title-en">RECRUIT</span><span className="submenu-title-ja">求人情報</span></a>
-          <a href="#" className="submenu-item"><span className="submenu-icon">✉️</span><span className="submenu-title-en">CONTACT</span><span className="submenu-title-ja">お問い合わせ</span></a>
-          <a href="#" className="submenu-item"><span className="submenu-icon">🌴</span><span className="submenu-title-en">BLOG</span><span className="submenu-title-ja">ブログ・お知らせ</span></a>
-        </div>
+       
       </section>
 
       <div className="dual-footer-bar">
