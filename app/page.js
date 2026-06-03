@@ -105,27 +105,38 @@ useEffect(() => {
           ))}
         </div>
 
-            <div className="price-section" style={{ marginTop: '50px', padding: '20px', background: '#fff', borderRadius: '15px', border: '1px solid #eee' }}>
-          <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>料金システム</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '15px 0' }}>60分コース</td>
-                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥10,000</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '15px 0' }}>90分コース</td>
-                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥14,000</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '15px 0' }}>120分コース</td>
-                <td style={{ padding: '15px 0', textAlign: 'right' }}>¥18,000</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style={{ fontSize: '12px', color: '#888', marginTop: '15px', textAlign: 'center' }}>※指名料は別途かかります</p>
-        </div>
+          <div className="price-section" style={{ marginTop: '50px', padding: '30px 20px', background: '#fff', borderRadius: '15px', border: '1px solid #eee' }}>
+          <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '30px' }}>料金システム</h2>
+          
+          {/* 各コースエリア */}
+          {[
+            { title: "ノーマルコース", desc: "丁寧な揉みほぐしで全身の疲れを癒やします。", prices: [["60分", "10,000円"], ["90分", "14,000円"], ["120分", "18,000円"]] },
+            { title: "とろふわコース", desc: "とろけるような感覚をお楽しみください。", prices: [["90分", "18,000円"], ["120分", "23,000円"]] },
+            { title: "マイクロコース", desc: "至福のひとときをご提供します。", prices: [["90分", "22,000円"], ["120分", "27,000円"]] }
+          ].map((course, idx) => (
+            <div key={idx} style={{ marginBottom: '30px' }}>
+              <h3 style={{ color: '#cdb273', borderBottom: '2px solid #cdb273', paddingBottom: '5px' }}>{course.title}</h3>
+              <p style={{ fontSize: '13px', color: '#666', margin: '10px 0' }}>※施術内容：{course.desc}</p>
+              <table style={{ width: '100%' }}>
+                {course.prices.map((p, i) => (
+                  <tr key={i}><td>{p[0]}</td><td style={{ textAlign: 'right' }}>{p[1]}</td></tr>
+                ))}
+              </table>
+            </div>
+          ))}
 
+          {/* 追加料金エリア */}
+          <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #eee', fontSize: '14px', color: '#555' }}>
+            <h4 style={{ marginBottom: '10px' }}>■ その他・オプション</h4>
+            <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2' }}>
+              <li>指名料：別途</li>
+              <li>延長：20分 4,000円</li>
+              <li>ルーム代：500円 / VIPルーム代：3,000円</li>
+              <li>深夜割増（22:00以降）：＋500円</li>
+              <li>土日祝割増：＋500円</li>
+            </ul>
+          </div>
+        </div>
         <div className="submenu-grid">
           <a href="#" className="submenu-item"><span className="submenu-icon">📅</span><span className="submenu-title-en">SCHEDULE</span><span className="submenu-title-ja">出勤表</span></a>
           <a href="#" className="submenu-item"><span className="submenu-icon">🌸</span><span className="submenu-title-en">NEW FACE</span><span className="submenu-title-ja">新人情報</span></a>
