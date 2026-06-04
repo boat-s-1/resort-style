@@ -92,7 +92,7 @@ function MyPageContent() {
       </div>
 
       <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px', marginTop: '20px' }}>
-        <h3>■ メッセージ/報告</h3>
+        <h3>■姫予約・連絡</h3>
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} style={{ width: '100%', height: '60px', boxSizing: 'border-box' }} />
         <button onClick={() => sendReport(message)} style={{ width: '100%', marginTop: '5px', background: '#e65100', color: '#fff', border: 'none', padding: '10px', cursor: 'pointer' }}>店長へ送信</button>
       </div>
