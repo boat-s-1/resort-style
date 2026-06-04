@@ -1,3 +1,29 @@
+'use client';
+import { useEffect, useState } from 'react';
+
+export default function StaffPage() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    // 先ほどコピーしたURLを貼り付ける
+    fetch('https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec')
+      .then(res => res.json())
+      .then(data => setData(data));
+  }, []);
+
+  return (
+    <div>
+      {/* 自分の名前でフィルターして表示 */}
+      {data.filter(row => row.name === "あかり").map((row, index) => (
+        <div key={index} className="card">
+          <p>{row.date} : {row.course} コース</p>
+          <h2 style={{ color: '#cdb273' }}>報酬: ¥{row.salary}</h2>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function StaffPage() {
   // ここでスプレッドシートから取得した自分のデータを表示
   return (
