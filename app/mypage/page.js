@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 
 function MyPageContent() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const name = searchParams.get('name') || '未選択';
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec';
@@ -14,17 +15,24 @@ function MyPageContent() {
       .then(data => setData(data));
   }, []);
 
-  // スプレッドシート送信＆LINE通知関数
+  // スプレッドシート記録 ＆ LINE通知送信
   const sendReport = async (message) => {
-    // 1. スプレッドシートへ記録送信
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, message: message })
-    });
-    // 2. LINEアプリを起動
-    window.location.href = `https://line.me/R/msg/text/?【${name}】${message}`;
+    setLoading(true); // 送信中にボタン無効化など
+    
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, message: message })
+      });
+      
+      alert(`${message} を送信しました！`);
+    } catch (error) {
+      alert('送信に失敗しました。もう一度お試しください。');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const myData = data.filter(row => row.name === name);
@@ -39,12 +47,11 @@ function MyPageContent() {
         <h2 style={{ margin: '0', color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
-      {/* ボタン部分：sendReport関数を呼び出す */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => sendReport('お仕事開始しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事開始</button>
-        <button onClick={() => sendReport('お仕事終了しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事終了</button>
-        <button onClick={() => sendReport('出勤報告します')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>出勤報告</button>
-        <button onClick={() => sendReport('姫予約送信しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>姫予約送信</button>
+        <button disabled={loading} onClick={() => sendReport('お仕事開始しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事開始</button>
+        <button disabled={loading} onClick={() => sendReport('お仕事終了しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事終了</button>
+        <button disabled={loading} onClick={() => sendReport('出勤報告')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>出勤報告</button>
+        <button disabled={loading} onClick={() => sendReport('姫予約送信')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>姫予約送信</button>
       </div>
 
       <div style={{ marginBottom: '20px' }}>
