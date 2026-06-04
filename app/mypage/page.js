@@ -48,12 +48,21 @@ function MyPageContent() {
         <h2 style={{ color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
-        <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
-        <button onClick={() => sendReport('お仕事開始')} style={btnStyle}>お仕事開始</button>
-        <button onClick={() => sendReport('お仕事終了')} style={btnStyle}>お仕事終了</button>
-      </div>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+  <button onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
+  <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
+  
+  {/* 2枠分使う準備完了ボタン */}
+  <button 
+    onClick={() => sendReport('準備完了')} 
+    style={{ ...btnStyle, gridColumn: 'span 2', background: '#388e3c' }}
+  >
+    準備完了
+  </button>
+  
+  <button onClick={() => sendReport('お仕事開始')} style={btnStyle}>お仕事開始</button>
+  <button onClick={() => sendReport('お仕事終了')} style={btnStyle}>お仕事終了</button>
+</div>
 
       <div>
         <h3>■ 確定予約</h3>
