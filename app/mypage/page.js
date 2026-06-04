@@ -2,7 +2,6 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-// コンポーネント内で使用するボタンスタイルを定義
 const btnStyle = { 
   padding: '10px', 
   background: '#333', 
@@ -29,7 +28,6 @@ function MyPageContent() {
 
   const sendReport = async (reportMessage) => {
     setLoading(true);
-    
     try {
       await fetch(GAS_URL, {
         method: 'POST',
@@ -37,10 +35,9 @@ function MyPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, message: reportMessage })
       });
-      
       alert(`${reportMessage} を送信しました！`);
     } catch (error) {
-      alert('送信に失敗しました。もう一度お試しください。');
+      alert('送信に失敗しました。');
     } finally {
       setLoading(false);
     }
@@ -53,17 +50,17 @@ function MyPageContent() {
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
       <h1 style={{ fontSize: '1.2rem' }}>マイページ - {name} さん</h1>
       
-      {/* 報酬表示 */}
       <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px', border: '1px solid #ddd', textAlign: 'center', marginBottom: '20px' }}>
         <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>【本日の報酬見込み】</p>
         <h2 style={{ margin: '0', color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
-      {/* アクションボタン */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button disabled={loading} onClick={() => sendReport('お仕事開始')} style={btnStyle}>開始</button>
-        <button disabled={loading} onClick={() => sendReport('退勤通知')} style={btnStyle}>退勤</button>
-        <button disabled={loading} onClick={() => sendReport('出勤報告')} style={btnStyle}>報告</button>
+      {/* 修正したボタン配置 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+        <button disabled={loading} onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
+        <button disabled={loading} onClick={() => sendReport('お仕事開始')} style={btnStyle}>お仕事開始</button>
+        <button disabled={loading} onClick={() => sendReport('お仕事終了')} style={btnStyle}>お仕事終了</button>
+        <button disabled={loading} onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
       </div>
 
       {/* 姫予約入力 */}
@@ -84,7 +81,6 @@ function MyPageContent() {
         </button>
       </div>
 
-      {/* 予約状況 */}
       <div>
         <h3 style={{ borderBottom: '2px solid #333', paddingBottom: '5px' }}>■ 本日の予約状況</h3>
         {myData.length > 0 ? myData.map((row, i) => (
