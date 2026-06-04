@@ -51,9 +51,9 @@ function MyPageContent() {
       {/* アクションボタン */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
         <button onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
+         <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
         <button onClick={() => sendReport('開始')} style={btnStyle}>お仕事開始</button>
         <button onClick={() => sendReport('終了')} style={btnStyle}>お仕事終了</button>
-        <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
       </div>
 
       {/* 予約リスト表示エリア */}
