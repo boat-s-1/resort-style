@@ -87,7 +87,7 @@ function MyPageContent() {
       </div>
     </div>
   ))}
-</div>
+
 export default function Page() {
   return <Suspense fallback={<div>読み込み中...</div>}><MyPageContent /></Suspense>;
 }
