@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 const btnStyle = { padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%' };
 
 function MyPageContent() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({ records: [], notices: [], history: [] });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const searchParams = useSearchParams();
@@ -42,7 +42,13 @@ function MyPageContent() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>{name} さん マイページ</h1>
+      <h1>{name} さん マイページ</h1><div style={{ background: '#e3f2fd', padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
+  <h3>📢 お知らせ</h3>
+  {data.notices.slice(-3).map((n, i) => ( // 最新3件を表示
+    <p key={i}>[{n.日付}] {n.内容}</p>
+  ))}
+</div>
+  
       <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '10px', textAlign: 'center', marginBottom: '20px' }}>
         <p>【本日の確定報酬】</p>
         <h2 style={{ color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
