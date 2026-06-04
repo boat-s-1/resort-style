@@ -67,7 +67,7 @@ function MyPageContent() {
       <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>■ 姫予約を入力</h3>
         <textarea 
-          placeholder="お客様名やコース内容を入力..."
+          placeholder="お客様名・電話番号・コース・予約時間"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           style={{ width: '100%', height: '80px', marginBottom: '10px', padding: '5px', boxSizing: 'border-box' }}
