@@ -6,15 +6,27 @@ function MyPageContent() {
   const [data, setData] = useState([]);
   const searchParams = useSearchParams();
   const name = searchParams.get('name') || '未選択';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec';
 
   useEffect(() => {
-    // あなたのウェブアプリURLからデータを取得
-    fetch('https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec')
+    fetch(GAS_URL)
       .then(res => res.json())
       .then(data => setData(data));
   }, []);
 
-  // 今日のデータを抽出（仮に全データを表示）
+  // スプレッドシート送信＆LINE通知関数
+  const sendReport = async (message) => {
+    // 1. スプレッドシートへ記録送信
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, message: message })
+    });
+    // 2. LINEアプリを起動
+    window.location.href = `https://line.me/R/msg/text/?【${name}】${message}`;
+  };
+
   const myData = data.filter(row => row.name === name);
   const totalSalary = myData.reduce((sum, row) => sum + row.salary, 0);
 
@@ -27,10 +39,12 @@ function MyPageContent() {
         <h2 style={{ margin: '0', color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
+      {/* ボタン部分：sendReport関数を呼び出す */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        {['お仕事開始', 'お仕事終了', '出勤報告', '姫予約送信'].map(btn => (
-          <button key={btn} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>{btn}</button>
-        ))}
+        <button onClick={() => sendReport('お仕事開始しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事開始</button>
+        <button onClick={() => sendReport('お仕事終了しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>お仕事終了</button>
+        <button onClick={() => sendReport('出勤報告します')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>出勤報告</button>
+        <button onClick={() => sendReport('姫予約送信しました')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>姫予約送信</button>
       </div>
 
       <div style={{ marginBottom: '20px' }}>
