@@ -65,15 +65,21 @@ function MyPageContent() {
             </div>
           </div>
         ))}
-        <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
-        {myData.filter(r => r.status === '仮予約').map((r, i) => (
-          <div key={i} style={{ padding: '10px', borderBottom: '1px solid #eee', color: '#666' }}>
-            <div style={{ fontWeight: 'bold' }}>{r.time} 予約: {r.course}コース (仮)</div>
-            <div style={{ fontSize: '0.9em' }}>
-              お客様預かり: ¥{r.received.toLocaleString()}
-            </div>
-          </div>
-        ))}
+     <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
+{myData.filter(r => r.status === '仮予約').map((r, i) => (
+  <div key={i} style={{ padding: '10px', borderBottom: '1px solid #eee', color: '#666' }}>
+    <div style={{ fontWeight: 'bold' }}>{r.time} 予約: {r.course}コース (仮)</div>
+    <div style={{ fontSize: '0.9em' }}>
+      お客様預かり: ¥{r.received.toLocaleString()}
+    </div>
+    {/* 備考（メモ）がある場合だけ表示する */}
+    {r.note && (
+      <div style={{ marginTop: '5px', padding: '5px', background: '#fff3e0', borderRadius: '4px', fontSize: '0.85em', color: '#d84315' }}>
+        <strong>備考:</strong> {r.note}
+      </div>
+    )}
+  </div>
+))}
       </div>
 
       <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px', marginTop: '20px' }}>
