@@ -34,11 +34,11 @@ function MyPageContent() {
     } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
-  const myData = data.filter(row => row.name === name);
+  const myData = data.records.filter(row => row.name === name);
   
-  const totalSalary = myData
-    .filter(r => r.status === '確定')
-    .reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
+ const totalSalary = myData
+  .filter(r => r.status === '確定')
+  .reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
