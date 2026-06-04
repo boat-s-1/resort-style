@@ -67,30 +67,27 @@ function MyPageContent() {
         <button onClick={() => sendReport('お仕事終了')} style={btnStyle}>お仕事終了</button>
       </div>
 
-      <div>
-        <h3>■ 確定予約</h3>
-        {myData.filter(r => r.status === '確定').map((r, i) => (
-          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>
-            {r.time} 予約: {r.course}コース
-          </div>
-        ))}
-        <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
-        {myData.filter(r => r.status === '仮予約').map((r, i) => (
-          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #eee', color: '#666' }}>
-            {r.time} 予約: {r.course}コース (仮)
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px', marginTop: '20px' }}>
-        <h3>■ メッセージ/報告</h3>
-        <textarea value={message} onChange={(e) => setMessage(e.target.value)} style={{ width: '100%', height: '60px', boxSizing: 'border-box' }} />
-        <button onClick={() => sendReport(message)} style={{ width: '100%', marginTop: '5px', background: '#e65100', color: '#fff', border: 'none', padding: '10px', cursor: 'pointer' }}>店長へ送信</button>
+    <div>
+  <h3>■ 確定予約</h3>
+  {myData.filter(r => r.status === '確定').map((r, i) => (
+    <div key={i} style={{ padding: '10px', borderBottom: '1px solid #ccc' }}>
+      <div style={{ fontWeight: 'bold' }}>{r.time} 予約: {r.course}コース</div>
+      <div style={{ color: '#d32f2f', fontSize: '0.9em' }}>
+        支給報酬: ¥{r.salary.toLocaleString()} / お客様預かり: ¥{r.received.toLocaleString()}
       </div>
     </div>
-  );
-}
+  ))}
 
+  <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
+  {myData.filter(r => r.status === '仮予約').map((r, i) => (
+    <div key={i} style={{ padding: '10px', borderBottom: '1px solid #eee', color: '#666' }}>
+      <div style={{ fontWeight: 'bold' }}>{r.time} 予約: {r.course}コース (仮)</div>
+      <div style={{ fontSize: '0.9em' }}>
+        お客様預かり: ¥{r.received.toLocaleString()}
+      </div>
+    </div>
+  ))}
+</div>
 export default function Page() {
   return <Suspense fallback={<div>読み込み中...</div>}><MyPageContent /></Suspense>;
 }
