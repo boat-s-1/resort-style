@@ -2,8 +2,6 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-const btnStyle = { padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' };
-
 function MyPageContent() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,8 +13,7 @@ function MyPageContent() {
   useEffect(() => {
     fetch(GAS_URL)
       .then(res => res.json())
-      .then(data => setData(data))
-      .catch(err => console.error("データ取得エラー:", err));
+      .then(data => setData(data));
   }, []);
 
   const sendReport = async (reportMessage) => {
@@ -32,54 +29,35 @@ function MyPageContent() {
     } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
-  // 自分のデータのみ抽出
+  // スプレッドシートの構成に合わせてインデックスを調整
+  // B列(名前), C列(予約時間), D列(コース), E列(時間), H列(支給金額), J列(チェックボックス)
   const myData = data.filter(row => row.name === name);
-  
-  // 確定のみ合計（給与計算）
-  const totalSalary = myData.filter(r => r.status === '確定').reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
+  const totalSalary = myData.filter(r => r.isChecked).reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>{name} さん マイページ</h1>
-
-      {/* 報酬表示 */}
       <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '10px', textAlign: 'center', marginBottom: '20px' }}>
         <p>【本日の確定報酬】</p>
         <h2 style={{ color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
-      {/* アクションボタン */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
-         <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
-        <button onClick={() => sendReport('開始')} style={btnStyle}>お仕事開始</button>
-        <button onClick={() => sendReport('終了')} style={btnStyle}>お仕事終了</button>
+        <button onClick={() => sendReport('出勤')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>出勤</button>
+        <button onClick={() => sendReport('開始')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>開始</button>
+        <button onClick={() => sendReport('終了')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>終了</button>
+        <button onClick={() => sendReport('退勤')} style={{ padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px' }}>退勤</button>
       </div>
 
-      {/* 予約リスト表示エリア */}
-      <div style={{ marginBottom: '20px' }}>
+      <div>
         <h3>■ 確定予約</h3>
-        {myData.filter(r => r.status === '確定').map((r, i) => (
-          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>
-            {r.time}時: {r.course}コース / {r.customer}様
-          </div>
+        {myData.filter(r => r.isChecked).map((r, i) => (
+          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>{r.time}時: {r.course}コース</div>
         ))}
-        
-        <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
-        {myData.filter(r => r.status === '仮予約').map((r, i) => (
-          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #eee', color: '#666' }}>
-            {r.time}時: {r.course}コース (仮)
-          </div>
+        <h3>■ 仮予約</h3>
+        {myData.filter(r => !r.isChecked).map((r, i) => (
+          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #eee', color: '#666' }}>{r.time}時: {r.course}コース</div>
         ))}
-      </div>
-
-      {/* メール報告用フォーム */}
-      <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px' }}>
-        <h3>■ メッセージ/報告</h3>
-        <textarea value={message} onChange={(e) => setMessage(e.target.value)} style={{ width: '100%', height: '60px' }} />
-        <button onClick={() => sendReport(message)} style={{ width: '100%', marginTop: '5px', background: '#e65100', color: '#fff', border: 'none', padding: '10px' }}>
-          店長へ送信
-        </button>
       </div>
     </div>
   );
