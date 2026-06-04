@@ -103,7 +103,7 @@ function MyPageContent() {
     onClick={() => sendReport(message)} 
     style={{ width: '100%', marginTop: '5px', background: '#e65100', color: '#fff', border: 'none', padding: '10px', cursor: 'pointer' }}
   >
-    店長へ送信
+    スタッフへ送信
   </button>
 </div>
     </div>
