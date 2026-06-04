@@ -2,14 +2,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-const btnStyle = { 
-  padding: '10px', 
-  background: '#333', 
-  color: '#fff', 
-  border: 'none', 
-  borderRadius: '5px',
-  cursor: 'pointer'
-};
+const btnStyle = { padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' };
 
 function MyPageContent() {
   const [data, setData] = useState([]);
@@ -35,59 +28,58 @@ function MyPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, message: reportMessage })
       });
-      alert(`${reportMessage} を送信しました！`);
-    } catch (error) {
-      alert('送信に失敗しました。');
-    } finally {
-      setLoading(false);
-    }
+      alert(`送信しました：${reportMessage}`);
+    } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
+  // 自分のデータのみ抽出
   const myData = data.filter(row => row.name === name);
-  const totalSalary = myData.reduce((sum, row) => sum + (Number(row.salary) || 0), 0);
+  
+  // 確定のみ合計（給与計算）
+  const totalSalary = myData.filter(r => r.status === '確定').reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '1.2rem' }}>マイページ - {name} さん</h1>
-      
-      <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px', border: '1px solid #ddd', textAlign: 'center', marginBottom: '20px' }}>
-        <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>【本日の報酬見込み】</p>
-        <h2 style={{ margin: '0', color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
+      <h1>{name} さん マイページ</h1>
+
+      {/* 報酬表示 */}
+      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '10px', textAlign: 'center', marginBottom: '20px' }}>
+        <p>【本日の確定報酬】</p>
+        <h2 style={{ color: '#d32f2f' }}>¥ {totalSalary.toLocaleString()}</h2>
       </div>
 
-      {/* 修正したボタン配置 */}
+      {/* アクションボタン */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-        <button disabled={loading} onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
-        <button disabled={loading} onClick={() => sendReport('お仕事開始')} style={btnStyle}>お仕事開始</button>
-        <button disabled={loading} onClick={() => sendReport('お仕事終了')} style={btnStyle}>お仕事終了</button>
-        <button disabled={loading} onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
+        <button onClick={() => sendReport('出勤')} style={btnStyle}>出勤</button>
+        <button onClick={() => sendReport('開始')} style={btnStyle}>お仕事開始</button>
+        <button onClick={() => sendReport('終了')} style={btnStyle}>お仕事終了</button>
+        <button onClick={() => sendReport('退勤')} style={btnStyle}>退勤</button>
       </div>
 
-      {/* 姫予約入力 */}
-      <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>■ 姫予約を入力</h3>
-        <textarea 
-          placeholder="お客様名・電話番号・コース・予約時間"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          style={{ width: '100%', height: '80px', marginBottom: '10px', padding: '5px', boxSizing: 'border-box' }}
-        />
-        <button 
-          disabled={loading || !message} 
-          onClick={() => { sendReport(`姫予約: ${message}`); setMessage(''); }} 
-          style={{ width: '100%', padding: '10px', background: '#e65100', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
-          予約をメールで送信
-        </button>
-      </div>
-
-      <div>
-        <h3 style={{ borderBottom: '2px solid #333', paddingBottom: '5px' }}>■ 本日の予約状況</h3>
-        {myData.length > 0 ? myData.map((row, i) => (
-          <div key={i} style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
-            {row.date} - {row.course}コース (報酬: ¥{Number(row.salary).toLocaleString()})
+      {/* 予約リスト表示エリア */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3>■ 確定予約</h3>
+        {myData.filter(r => r.status === '確定').map((r, i) => (
+          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #ccc' }}>
+            {r.time}時: {r.course}コース / {r.customer}様
           </div>
-        )) : <p>現在予約データはありません。</p>}
+        ))}
+        
+        <h3 style={{ marginTop: '20px' }}>■ 仮予約・予定</h3>
+        {myData.filter(r => r.status === '仮予約').map((r, i) => (
+          <div key={i} style={{ padding: '8px', borderBottom: '1px solid #eee', color: '#666' }}>
+            {r.time}時: {r.course}コース (仮)
+          </div>
+        ))}
+      </div>
+
+      {/* メール報告用フォーム */}
+      <div style={{ background: '#fff3e0', padding: '15px', borderRadius: '5px' }}>
+        <h3>■ メッセージ/報告</h3>
+        <textarea value={message} onChange={(e) => setMessage(e.target.value)} style={{ width: '100%', height: '60px' }} />
+        <button onClick={() => sendReport(message)} style={{ width: '100%', marginTop: '5px', background: '#e65100', color: '#fff', border: 'none', padding: '10px' }}>
+          店長へ送信
+        </button>
       </div>
     </div>
   );
