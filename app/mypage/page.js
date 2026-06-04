@@ -9,7 +9,7 @@ function MyPageContent() {
 
   useEffect(() => {
     // スプレッドシートからデータを取得
-    fetch('あなたのウェブアプリURL')
+    fetch('https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec')
       .then(res => res.json())
       .then(data => setData(data));
   }, []);
