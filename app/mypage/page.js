@@ -34,8 +34,13 @@ function MyPageContent() {
     } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
-  const myData = data.filter(row => row.name === name);
-  const totalSalary = myData.filter(r => r.status === '確定').reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
+ // 報酬合計の計算部分を以下に差し替えてください
+const myData = data.filter(row => row.name === name);
+
+// 確定かつ、報酬が数値であるものだけを合計
+const totalSalary = myData
+  .filter(r => r.status === '確定')
+  .reduce((sum, r) => sum + (Number(r.salary) || 0), 0);
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
