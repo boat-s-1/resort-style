@@ -36,6 +36,7 @@ function MyPageContent() {
 
   const today = new Date();
 const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+  console.log("今日の日付文字列:", todayStr);
 
 // 名前が一致し、かつ日付が今日のものだけに絞り込む
 const myData = data.records 
