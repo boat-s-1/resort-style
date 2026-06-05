@@ -44,19 +44,15 @@ const tYear = today.getFullYear();
 
 
 // 名前が一致し、かつ日付が今日のものだけに絞り込む
+const todayStr = "6/5"; // もしスプレッドシートが "6/4" のように書かれているならこれ
+
 const myData = data.records 
-    ? data.records.filter(row => {
-        // row.日付 が日付型オブジェクトとして来ている場合に対応
-        const rowDate = new Date(row.日付);
-        // 無効な日付の場合はスキップ
-        if (isNaN(rowDate.getTime())) return false;
-        
-        return row.name === name && 
-               rowDate.getFullYear() === tYear &&
-               (rowDate.getMonth() + 1) === tMonth &&
-               rowDate.getDate() === tDay;
-      })
-    : [];
+  ? data.records.filter(row => {
+      // データの「日付」を確実に文字列にして、"6/5"が含まれるかチェック
+      const dateValue = String(row.日付); 
+      return row.name === name && dateValue.includes(todayStr);
+    })
+  : [];
   
  const totalSalary = myData
   .filter(r => r.status === '確定')
