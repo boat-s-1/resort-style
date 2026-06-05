@@ -36,11 +36,15 @@ function MyPageContent() {
 
   const today = new Date();
 const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
-  console.log("今日の日付文字列:", todayStr);
+
 
 // 名前が一致し、かつ日付が今日のものだけに絞り込む
 const myData = data.records 
-  ? data.records.filter(row => row.name === name && String(row.日付).includes(todayStr))
+  ? data.records.filter(row => {
+      // スプレッドシートの日付（例: "6/5"）を文字列として取得
+      const rowDateStr = String(row.日付); 
+      return row.name === name && rowDateStr.includes(todayStr);
+    })
   : [];
   
  const totalSalary = myData
