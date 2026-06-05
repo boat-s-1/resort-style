@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 
 const btnStyle = { padding: '10px', background: '#333', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%' };
 
+
 function MyPageContent() {
   const [data, setData] = useState({ records: [], notices: [], history: [] });
   const [loading, setLoading] = useState(false);
