@@ -34,7 +34,13 @@ function MyPageContent() {
     } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
-  const myData = data.records.filter(row => row.name === name);
+  const today = new Date();
+const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+
+// 名前が一致し、かつ日付が今日のものだけに絞り込む
+const myData = data.records 
+  ? data.records.filter(row => row.name === name && String(row.日付).includes(todayStr))
+  : [];
   
  const totalSalary = myData
   .filter(r => r.status === '確定')
