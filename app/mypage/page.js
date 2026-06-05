@@ -37,22 +37,16 @@ useEffect(() => {
     } catch (error) { alert('送信失敗'); } finally { setLoading(false); }
   };
 
-  const today = new Date();
-const tYear = today.getFullYear();
-  const tMonth = today.getMonth() + 1;
-  const tDay = today.getDate();
+const today = new Date();
+  const todayStr = `${today.getMonth() + 1}/${today.getDate()}`; // "6/5"
 
-
-// 名前が一致し、かつ日付が今日のものだけに絞り込む
-const todayStr = "6/5"; // もしスプレッドシートが "6/4" のように書かれているならこれ
-
-const myData = data.records 
-  ? data.records.filter(row => {
-      // データの「日付」を確実に文字列にして、"6/5"が含まれるかチェック
-      const dateValue = String(row.日付); 
-      return row.name === name && dateValue.includes(todayStr);
-    })
-  : [];
+  const myData = data.records 
+    ? data.records.filter(row => {
+        // row.date を文字列化して比較
+        const dateStr = String(row.date); 
+        return row.name === name && dateStr.includes(todayStr);
+      })
+    : [];
   
  const totalSalary = myData
   .filter(r => r.status === '確定')
