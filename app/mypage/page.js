@@ -35,17 +35,25 @@ function MyPageContent() {
   };
 
   const today = new Date();
-const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+const tYear = today.getFullYear();
+  const tMonth = today.getMonth() + 1;
+  const tDay = today.getDate();
 
 
 // 名前が一致し、かつ日付が今日のものだけに絞り込む
 const myData = data.records 
-  ? data.records.filter(row => {
-      // スプレッドシートの日付（例: "6/5"）を文字列として取得
-      const rowDateStr = String(row.日付); 
-      return row.name === name && rowDateStr.includes(todayStr);
-    })
-  : [];
+    ? data.records.filter(row => {
+        // row.日付 が日付型オブジェクトとして来ている場合に対応
+        const rowDate = new Date(row.日付);
+        // 無効な日付の場合はスキップ
+        if (isNaN(rowDate.getTime())) return false;
+        
+        return row.name === name && 
+               rowDate.getFullYear() === tYear &&
+               (rowDate.getMonth() + 1) === tMonth &&
+               rowDate.getDate() === tDay;
+      })
+    : [];
   
  const totalSalary = myData
   .filter(r => r.status === '確定')
