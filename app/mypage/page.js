@@ -38,15 +38,14 @@ useEffect(() => {
   };
 
 const today = new Date();
-  const todayStr = `${today.getMonth() + 1}/${today.getDate()}`; // "6/5"
+const todayStr = `${today.getMonth() + 1}/${today.getDate()}`; // "6/5"
 
-  const myData = data.records 
-    ? data.records.filter(row => {
-        // row.date を文字列化して比較
-        const dateStr = String(row.date); 
-        return row.name === name && dateStr.includes(todayStr);
-      })
-    : [];
+const myData = data.records 
+  ? data.records.filter(row => {
+      // GAS側で文字列「6/5」に変換してあるので、そのまま比較するだけ！
+      return row.name === name && row.date === todayStr;
+    })
+  : [];
   
  const totalSalary = myData
   .filter(r => r.status === '確定')
