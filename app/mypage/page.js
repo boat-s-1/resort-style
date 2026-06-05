@@ -12,10 +12,13 @@ function MyPageContent() {
   const name = searchParams.get('name') || '未選択';
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbzldBaCb58P6wQtmUMbfMBX_K8KwdOouBNTrIC0pjwehtBG0mLpTOxjPV5-xE-hxb0J/exec';
 
-  useEffect(() => {
+useEffect(() => {
     fetch(GAS_URL)
       .then(res => res.json())
-      .then(data => setData(data))
+      .then(data => {
+        console.log("GASから届いたデータ:", data); // これを表示！
+        setData(data);
+      })
       .catch(err => console.error("データ取得エラー:", err));
   }, []);
 
