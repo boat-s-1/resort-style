@@ -8,7 +8,7 @@ export default function Home() {
   const [events, setEvents] = useState([]);
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
-
+const [currentPage, setCurrentPage] = useState('home');
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -39,12 +39,13 @@ export default function Home() {
 
   return (
     <>
-      <header className="site-header">
-        <div className="menu-trigger"><div>＝</div><div>MENU</div></div>
-        <div className="header-logo-wrapper">
-          <div className="header-logo-sub">Luxury Relaxation Salon</div>
-          <div className="header-logo-main">Resort-Style</div>
-        </div>
+   <header className="site-header">
+      {/* どこからでもトップに戻れるように設定 */}
+      <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>MENU</div></div>
+      <div className="header-logo-wrapper" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>
+        <div className="header-logo-sub">Luxury Relaxation Salon</div>
+        <div className="header-logo-main">Resort-Style</div>
+      </div>
         <div className="line-trigger"><div>💬</div><div>LINE</div></div>
       </header>
 
@@ -171,7 +172,20 @@ export default function Home() {
         </div>
       </section>
 
-  
+  <section className="section" style={{ padding: '100px 20px' }}>
+        <h2 className="section-title-en">Recruit</h2>
+        <div className="section-ornament">✧ ⚜️ ✧</div>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
+          <h3>一緒に働いてくれるセラピストを募集中！</h3>
+          <p>未経験者大歓迎！丁寧な研修制度がありますので、安心してスタートできます。</p>
+          <ul>
+            <li>勤務地：愛知県豊橋市中郷町</li>
+            <li>給与：歩合制（詳細は面談にて）</li>
+            <li>シフト：週1日〜OK</li>
+          </ul>
+          <button onClick={() => setCurrentPage('home')}>トップに戻る</button>
+        </div>
+      </section>
 
 
             
