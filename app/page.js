@@ -8,7 +8,8 @@ export default function Home() {
   const [events, setEvents] = useState([]);
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
-const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState('home');
+
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -37,30 +38,27 @@ const [currentPage, setCurrentPage] = useState('home');
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
 
- return (
+return (
     <>
       <header className="site-header">
-        {/* メニューを押すと currentPage を 'recruit' に変更 */}
         <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>MENU</div></div>
-        
-        {/* ロゴを押すと currentPage を 'home' に変更 */}
         <div className="header-logo-wrapper" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>
           <div className="header-logo-sub">Luxury Relaxation Salon</div>
           <div className="header-logo-main">Resort-Style</div>
         </div>
         <div className="line-trigger"><div>💬</div><div>LINE</div></div>
       </header>
-{/* ここでページ切り替えの判定を行います */}
+
       {currentPage === 'home' ? (
-        // === トップページの中身 ===
-      <section className="hero">
-        <div className="slider-container">
-          {sliderImages.map((image, index) => (
-            <div key={index} className={`slide ${index === currentSlide ? 'active' : ''}`} style={{ backgroundImage: `url(${image})` }} />
-          ))}
-          <div className="slider-overlay-layer"></div>
-        </div>
-      </section>
+        <>
+          <section className="hero">
+            <div className="slider-container">
+              {sliderImages.map((image, index) => (
+                <div key={index} className={`slide ${index === currentSlide ? 'active' : ''}`} style={{ backgroundImage: `url(${image})` }} />
+              ))}
+              <div className="slider-overlay-layer"></div>
+            </div>
+          </section>
 
       {/* イベント情報エリア */}
       {events && events.length > 0 && (
@@ -172,25 +170,20 @@ const [currentPage, setCurrentPage] = useState('home');
         </div>
         
         <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
-          <p>愛知県豊橋市中郷町</p>
-        </div>
-      </section></>
-) : (
-  <section className="section" style={{ padding: '100px 20px' }}>
-        <h2 className="section-title-en">Recruit</h2>
-        <div className="section-ornament">✧ ⚜️ ✧</div>
-        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
-          <h3>一緒に働いてくれるセラピストを募集中！</h3>
-          <p>未経験者大歓迎！丁寧な研修制度がありますので、安心してスタートできます。</p>
-          <ul>
-            <li>勤務地：愛知県豊橋市中郷町</li>
-            <li>給与：歩合制（詳細は面談にて）</li>
-            <li>シフト：週1日〜OK</li>
-          </ul>
-          <button onClick={() => setCurrentPage('home')}>トップに戻る</button>
-        </div>
-      </section>
-)}
+        <p>愛知県豊橋市中郷町</p>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
+          <h2 className="section-title-en">Recruit</h2>
+          <div className="section-ornament">✧ ⚜️ ✧</div>
+          <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
+            <h3>一緒に働いてくれるセラピストを募集中！</h3>
+            <button onClick={() => setCurrentPage('home')}>トップに戻る</button>
+          </div>
+        </section>
+      )}
 
             
       <div className="dual-footer-bar">
