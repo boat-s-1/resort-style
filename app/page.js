@@ -175,7 +175,7 @@ const [currentPage, setCurrentPage] = useState('home');
           <p>愛知県豊橋市中郷町</p>
         </div>
       </section>
-
+) : (
   <section className="section" style={{ padding: '100px 20px' }}>
         <h2 className="section-title-en">Recruit</h2>
         <div className="section-ornament">✧ ⚜️ ✧</div>
