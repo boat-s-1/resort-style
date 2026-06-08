@@ -211,7 +211,13 @@ return (
       <li>✅ 主婦・シングルマザー大歓迎</li>
     </ul>
   </div>
-
+<div style={{ marginTop: '30px', marginBottom: '30px' }}>
+      <img 
+        src="/KYU.png" 
+        alt="お店の魅力と強み" 
+        style={{ width: '100%', borderRadius: '10px', display: 'block' }} 
+      />
+    </div>
   <div style={{ textAlign: 'center', marginTop: '30px' }}>
     <p>まずは話を聞いてみたいという方も大歓迎です！<br />お気軽にLINEからお問い合わせください。</p>
     <button onClick={() => setCurrentPage('home')} style={{ padding: '12px 30px', background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
