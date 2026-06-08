@@ -147,7 +147,6 @@ export default function Home() {
         </div>
      </section>
 
-// ...（既存のコードの続き）
 
       <section className="section">
         <h2 className="section-title-en">Access</h2>
@@ -173,7 +172,6 @@ export default function Home() {
       </section>
 
   
-// ...（以下フッター）
 
 
             
