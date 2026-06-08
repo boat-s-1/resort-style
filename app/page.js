@@ -9,7 +9,8 @@ export default function Home() {
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentPage, setCurrentPage] = useState('home');
-
+const recruitSliderImages = ['/recruit-banner1.jpg', '/recruit-banner2.jpg']; // ここに実際の画像パスを入れてください
+const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -37,7 +38,9 @@ export default function Home() {
 
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
-
+const recruitTimer = setInterval(() => {
+    setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
+  }, 5000);
 return (
     <>
       <header className="site-header">
@@ -175,9 +178,24 @@ return (
           </section>
         </>
       ) : (
-        <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
-          <h2 className="section-title-en">Recruit</h2>
-          <div className="section-ornament">✧ ⚜️ ✧</div>
+       <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
+  <h2 className="section-title-en">Recruit</h2>
+  <div className="section-ornament">✧ ⚜️ ✧</div>
+
+  {/* 求人スライダーエリア */}
+  <div className="slider-container" style={{ position: 'relative', width: '100%', maxWidth: '600px', margin: '0 auto 30px', height: '300px', overflow: 'hidden', borderRadius: '15px' }}>
+    {recruitSliderImages.map((image, index) => (
+      <div 
+        key={index} 
+        className={`slide ${index === currentRecruitSlide ? 'active' : ''}`} 
+        style={{ 
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: index === currentRecruitSlide ? 1 : 0, transition: 'opacity 1s ease-in-out'
+        }} 
+      />
+    ))}
+  </div>
        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '1.8', padding: '20px' }}>
   <h3 style={{ borderLeft: '4px solid #cdb273', paddingLeft: '15px' }}>一緒に働いてくれるセラピストを募集中！</h3>
   <p>未経験者大歓迎！研修制度が充実しており、安心してスタートできます。系列店一切なしの完全新規店です。</p>
