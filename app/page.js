@@ -147,6 +147,36 @@ export default function Home() {
         </div>
       </section>
 
+// ...（既存のコードの続き）
+
+      <section className="section">
+        <h2 className="section-title-en">Access</h2>
+        <div className="section-ornament">✧ ⚜️ ✧</div>
+        <p className="section-title-ja">店舗所在地</p>
+        
+        {/* ここにGoogleマップを配置 */}
+        <div style={{ marginTop: '20px', width: '100%', maxWidth: '800px', margin: '20px auto', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          <iframe 
+            src="https://maps.app.goo.gl/wo81D3D2qM6YLdcU9?g_st=ic" 
+            width="100%" 
+            height="300" 
+            style={{ border: 0 }} 
+            allowFullScreen="" 
+            loading="lazy" 
+            referrerPolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        
+        <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
+          <p>愛知県豊橋市中郷町</p>
+        </div>
+      </section>
+
+      <div className="dual-footer-bar">
+// ...（以下フッター）
+
+
+            
       <div className="dual-footer-bar">
         <a href="tel:0532-xx-xxxx" className="footer-btn-call">
           <span style={{ fontSize: '20px' }}>📞</span>
