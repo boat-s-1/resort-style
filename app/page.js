@@ -198,7 +198,8 @@ return (
 
     <h4 style={{ color: '#cdb273', marginTop: '20px', marginBottom: '10px' }}>【勤務スタイル】</h4>
     <p style={{ fontSize: '14px' }}>
-      ・完全自由出勤制（週1日・1日2〜3時間〜OK）<br />K・完全個室待機<br />
+      ・完全自由出勤制（週1日・1日2〜3時間〜OK）<br />
+      ・完全個室待機<br />
       ・系列店一切なし
     </p>
 
