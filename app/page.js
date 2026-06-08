@@ -41,7 +41,7 @@ export default function Home() {
 return (
     <>
       <header className="site-header">
-        <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>MENU</div></div>
+        <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>求人</div></div>
         <div className="header-logo-wrapper" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>
           <div className="header-logo-sub">Luxury Relaxation Salon</div>
           <div className="header-logo-main">Resort-Style</div>
