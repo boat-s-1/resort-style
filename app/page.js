@@ -178,32 +178,48 @@ return (
         <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
           <h2 className="section-title-en">Recruit</h2>
           <div className="section-ornament">✧ ⚜️ ✧</div>
-         <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
-  <h3>一緒に働いてくれるセラピストを募集中！</h3>
-  <p>未経験者大歓迎！研修制度が充実しており、安心してスタートできます。</p>
+       <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '1.8', padding: '20px' }}>
+  <h3 style={{ borderLeft: '4px solid #cdb273', paddingLeft: '15px' }}>一緒に働いてくれるセラピストを募集中！</h3>
+  <p>未経験者大歓迎！研修制度が充実しており、安心してスタートできます。系列店一切なしの完全新規店です。</p>
 
-  {/* 待遇セクション */}
-  <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-    <h4 style={{ color: '#cdb273', borderBottom: '1px solid #cdb273', marginBottom: '15px' }}>◆ 充実の待遇・環境</h4>
-    <ul style={{ listStyle: 'none', padding: 0 }}>
-      {[
-        "完全新規店・系列店一切なし",
-        "最低60%〜スタート（経験者条件クリアで70%バック）",
-        "完全日払い対応・当社規定時給保証あり",
-        "自由出勤（週1日～OK・掛け持ちOK）",
-        "自宅待機OK・完全個室待機",
-        "ネイルOK・髪色自由・制服貸与",
-        "主婦・シングルマザー大歓迎",
-        "研修制度あり・WIFI完備"
-      ].map((item, index) => (
-        <li key={index} style={{ marginBottom: '8px', fontSize: '14px' }}>
-          ✅ {item}
-        </li>
-      ))}
+  {/* 待遇・給与・条件セクション */}
+  <div style={{ background: '#fcfaf5', padding: '20px', borderRadius: '10px', border: '1px solid #eee' }}>
+    
+    <h4 style={{ color: '#cdb273', marginBottom: '10px' }}>【応募資格】</h4>
+    <p style={{ fontSize: '14px' }}>18歳〜39歳まで ※未経験・経験者・Wワーク・ブランク大歓迎！</p>
+
+    <h4 style={{ color: '#cdb273', marginTop: '20px', marginBottom: '10px' }}>【給与システム】</h4>
+    <p style={{ fontSize: '14px' }}>
+      ・60分：6,000円〜<br />
+      ・120分：12,000円〜<br />
+      ・最低60%〜スタート（経験者は条件クリアで70%バック）<br />
+      ・随時バックアップあり、完全日払い制<br />
+      <span style={{ fontSize: '12px', color: '#666' }}>※目安：3万円稼ぐには2〜3名接客、6万円なら4〜6名接客</span>
+    </p>
+
+    <h4 style={{ color: '#cdb273', marginTop: '20px', marginBottom: '10px' }}>【勤務スタイル】</h4>
+    <p style={{ fontSize: '14px' }}>
+      ・完全自由出勤制（週1日・1日2〜3時間〜OK）<br />
+      ・24時間営業・年中無休<br />
+      ・自宅待機OK・完全個室待機<br />
+      ・系列店一切なし
+    </p>
+
+    <h4 style={{ color: '#cdb273', marginTop: '20px', marginBottom: '10px' }}>【充実の待遇】</h4>
+    <ul style={{ listStyle: 'none', padding: 0, fontSize: '14px' }}>
+      <li>✅ ネイル・髪色自由</li>
+      <li>✅ 制服貸与・WIFI完備</li>
+      <li>✅ 時給保証制度あり</li>
+      <li>✅ 主婦・シングルマザー大歓迎</li>
     </ul>
   </div>
 
-  <button onClick={() => setCurrentPage('home')} style={{ marginTop: '30px', padding: '10px 20px' }}>トップに戻る</button>
+  <div style={{ textAlign: 'center', marginTop: '30px' }}>
+    <p>まずは話を聞いてみたいという方も大歓迎です！<br />お気軽にLINEからお問い合わせください。</p>
+    <button onClick={() => setCurrentPage('home')} style={{ padding: '12px 30px', background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+      トップに戻る
+    </button>
+  </div>
 </div>
         </section>
       )}
