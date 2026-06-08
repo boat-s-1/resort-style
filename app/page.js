@@ -145,7 +145,7 @@ export default function Home() {
             </ul>
           </div>
         </div>
-      </section>
+    
 
 // ...（既存のコードの続き）
 
