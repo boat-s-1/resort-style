@@ -9,8 +9,9 @@ export default function Home() {
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentPage, setCurrentPage] = useState('home');
-const recruitSliderImages = ['/recruit-banner1.jpg', '/recruit-banner2.jpg']; // ここに実際の画像パスを入れてください
-const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
+  const recruitSliderImages = ['/recruit-banner1.jpg', '/recruit-banner2.jpg'];
+  const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
+
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -19,41 +20,38 @@ const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
     return `${month}/${day}（${dayOfWeek}）`;
   };
 
- useEffect(() => {
-  // 元のデータ取得処理
-  fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
-    .then(res => res.json())
-    .then(data => {
-      if (data) {
-        if (data.schedule) setScheduleData(data.schedule);
-        if (data.events) setEvents(data.events);
-      }
-    })
-    .catch(err => console.error("読み込みエラー:", err));
+  useEffect(() => {
+    // データ取得
+    fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          if (data.schedule) setScheduleData(data.schedule);
+          if (data.events) setEvents(data.events);
+        }
+      })
+      .catch(err => console.error("読み込みエラー:", err));
 
-  // メインスライダーのタイマー
-  const timer = setInterval(() => {
-    setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-  }, 4000);
+    // メインスライダー
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+    }, 4000);
 
-  // 求人用スライダーのタイマー
-  const recruitTimer = setInterval(() => {
-    setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
-  }, 5000);
+    // 求人スライダー
+    const recruitTimer = setInterval(() => {
+      setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
+    }, 5000);
 
-  // クリーンアップ処理
-  return () => {
-    clearInterval(timer);
-    clearInterval(recruitTimer);
-  };
-}, []); // ← ここを [] にすることで、初回読み込み時だけ実行されます
+    return () => {
+      clearInterval(timer);
+      clearInterval(recruitTimer);
+    };
+  }, []);
 
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
 
-    setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
-  }, 5000);
-return (
+  return (
     <>
       <header className="site-header">
         <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>求人</div></div>
