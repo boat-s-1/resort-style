@@ -298,6 +298,9 @@ export default function Home() {
           <span style={{ fontSize: '24px' }}>💬</span>
           <div className="btn-main-text-box"><span className="footer-btn-subtext">24時間受付中</span><span>LINEで予約する</span></div>
         </a>
+        <a href="https://haji-s.com/tokai/area_aichi/kariya/type_industry02" rel="nofollow">
+        <img src="https://haji-s.com/images/link/link_200x40.jpg" alt="はじめてのメンズエステアルバイト" border="0" style={{ display: 'block' }} />
+      </a>
       </div>
     </>
   );
