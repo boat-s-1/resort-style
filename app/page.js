@@ -156,7 +156,7 @@ export default function Home() {
         {/* ここにGoogleマップを配置 */}
         <div style={{ marginTop: '20px', width: '100%', maxWidth: '800px', margin: '20px auto', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           <iframe 
-            src="<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d487.26885705736595!2d137.3819646985964!3d34.757076982850826!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6004d210465f1493%3A0x42af0831aefc9045!2z44CSNDQxLTgwMzEg5oSb55-l55yM6LGK5qmL5biC5Lit6YO355S677yR77yR77yW4oiS77yV!5e0!3m2!1sja!2sjp!4v1780938305926!5m2!1sja!2sjp" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d487.26885705736595!2d137.3819646985964!3d34.757076982850826!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6004d210465f1493%3A0x42af0831aefc9045!2z44CSNDQxLTgwMzEg5oSb55-l55yM6LGK5qmL5biC5Lit6YO355S677yR77yR77yW4oiS77yV!5e0!3m2!1sja!2sjp!4v1780938305926!5m2!1sja!2sjp" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" 
             width="100%" 
             height="300" 
             style={{ border: 0 }} 
