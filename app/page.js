@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 export default function Home() {
   const [scheduleData, setScheduleData] = useState([]);
   const [events, setEvents] = useState([]);
-  const sliderImages = ['/hero.jpg', '/hero2.jpg', '/hero3.jpg'];
+  const sliderImages = ['/hero.jp'];
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const formatDate = (dateStr) => {
