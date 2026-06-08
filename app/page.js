@@ -190,7 +190,7 @@ const [currentPage, setCurrentPage] = useState('home');
           <button onClick={() => setCurrentPage('home')}>トップに戻る</button>
         </div>
       </section>
-
+)}
 
             
       <div className="dual-footer-bar">
