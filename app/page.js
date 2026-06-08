@@ -284,9 +284,11 @@ export default function Home() {
       <a href="https://pafu2navi.com" rel="nofollow">
         <img src="https://pafu2navi.com/images/link/200_40.jpg" alt="セクキャバ・いちゃキャバ・おっパブ情報サイト【ぱふぱふなび】" border="0" style={{ display: 'block' }} />
       </a>
+        <a href="https://eslove.jp/chubu/aichi/shoplist/" target="_blank"><img src="https://eslove.jp/eslove_front_theme/banner/banner_200x40.jpg" alt="エステラブ" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://job.eslove.jp/chubu/aichi/search" target="_blank"><img src="https://job.eslove.jp/eslove_job_front_theme/img/banner/banner_200x40.jpg" alt="愛知のメンズエステ求人情報ならエステラブワーク" border="0" style={{ display: 'block' }} /></a>
     </div>
   </div>
-            
+               
       <div className="dual-footer-bar">
         <a href="tel:0532-xx-xxxx" className="footer-btn-call">
           <span style={{ fontSize: '20px' }}>📞</span>
