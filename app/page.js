@@ -19,26 +19,38 @@ const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
     return `${month}/${day}（${dayOfWeek}）`;
   };
 
-  useEffect(() => {
-    fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          if (data.schedule) setScheduleData(data.schedule);
-          if (data.events) setEvents(data.events);
-        }
-      })
-      .catch(err => console.error("読み込みエラー:", err));
+ useEffect(() => {
+  // 元のデータ取得処理
+  fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
+    .then(res => res.json())
+    .then(data => {
+      if (data) {
+        if (data.schedule) setScheduleData(data.schedule);
+        if (data.events) setEvents(data.events);
+      }
+    })
+    .catch(err => console.error("読み込みエラー:", err));
 
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  // メインスライダーのタイマー
+  const timer = setInterval(() => {
+    setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+  }, 4000);
+
+  // 求人用スライダーのタイマー
+  const recruitTimer = setInterval(() => {
+    setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
+  }, 5000);
+
+  // クリーンアップ処理
+  return () => {
+    clearInterval(timer);
+    clearInterval(recruitTimer);
+  };
+}, []); // ← ここを [] にすることで、初回読み込み時だけ実行されます
 
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
-const recruitTimer = setInterval(() => {
+
     setCurrentRecruitSlide((prev) => (prev + 1) % recruitSliderImages.length);
   }, 5000);
 return (
