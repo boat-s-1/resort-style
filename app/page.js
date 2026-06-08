@@ -9,7 +9,7 @@ export default function Home() {
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentPage, setCurrentPage] = useState('home');
-  const recruitSliderImages = ['/K.png', '/recruit-banner2.jpg'];
+  const recruitSliderImages = ['/K.png', '/KK.png'];
   const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
 
   const formatDate = (dateStr) => {
