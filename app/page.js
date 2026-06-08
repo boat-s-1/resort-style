@@ -178,10 +178,33 @@ return (
         <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
           <h2 className="section-title-en">Recruit</h2>
           <div className="section-ornament">✧ ⚜️ ✧</div>
-          <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
-            <h3>一緒に働いてくれるセラピストを募集中！</h3>
-            <button onClick={() => setCurrentPage('home')}>トップに戻る</button>
-          </div>
+         <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left', lineHeight: '2' }}>
+  <h3>一緒に働いてくれるセラピストを募集中！</h3>
+  <p>未経験者大歓迎！研修制度が充実しており、安心してスタートできます。</p>
+
+  {/* 待遇セクション */}
+  <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
+    <h4 style={{ color: '#cdb273', borderBottom: '1px solid #cdb273', marginBottom: '15px' }}>◆ 充実の待遇・環境</h4>
+    <ul style={{ listStyle: 'none', padding: 0 }}>
+      {[
+        "完全新規店・系列店一切なし",
+        "最低60%〜スタート（経験者条件クリアで70%バック）",
+        "完全日払い対応・当社規定時給保証あり",
+        "自由出勤（週1日～OK・掛け持ちOK）",
+        "自宅待機OK・完全個室待機",
+        "ネイルOK・髪色自由・制服貸与",
+        "主婦・シングルマザー大歓迎",
+        "研修制度あり・WIFI完備"
+      ].map((item, index) => (
+        <li key={index} style={{ marginBottom: '8px', fontSize: '14px' }}>
+          ✅ {item}
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <button onClick={() => setCurrentPage('home')} style={{ marginTop: '30px', padding: '10px 20px' }}>トップに戻る</button>
+</div>
         </section>
       )}
 
