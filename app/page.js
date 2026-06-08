@@ -145,7 +145,7 @@ export default function Home() {
             </ul>
           </div>
         </div>
-    
+     </section>
 
 // ...（既存のコードの続き）
 
@@ -172,7 +172,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="dual-footer-bar">
+  
 // ...（以下フッター）
 
 
