@@ -255,16 +255,31 @@ export default function Home() {
 </div>
         </section>
       )}
-<div style={{ textAlign: 'center', marginTop: '40px', paddingBottom: '20px' }}>
+{/* 求人リンクエリア */}
+  <div style={{ textAlign: 'center', marginTop: '40px', paddingBottom: '20px' }}>
     <p style={{ fontSize: '12px', color: '#888', marginBottom: '15px' }}>提携求人サイト</p>
-    <a href="https://www.fuzoku-job109.com/tokai/area_aichi-mikawa-toyohashi.html" rel="nofollow">
-      <img 
-        src="https://www.fuzoku-job109.com/img/link/link_200x40_menesu.jpg" 
-        alt="豊橋の求人情報サイト【はじ風】" 
-        border="0" 
-        style={{ verticalAlign: 'middle' }} 
-      />
-    </a>
+    
+    <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+      {/* リンク1：はじ風 */}
+      <a href="https://www.fuzoku-job109.com/tokai/area_aichi-mikawa-toyohashi.html" rel="nofollow">
+        <img 
+          src="https://www.fuzoku-job109.com/img/link/link_200x40_menesu.jpg" 
+          alt="豊橋の求人情報サイト【はじ風】" 
+          border="0" 
+          style={{ verticalAlign: 'middle', display: 'block' }} 
+        />
+      </a>
+      
+      {/* リンク2：30バイト */}
+      <a href="https://www.30baito.net/tokai/area_aichi.html" rel="nofollow">
+        <img 
+          src="https://www.30baito.net/img/link/link_200x40_menesu.jpg" 
+          alt="安城/岡崎/豊橋のお仕事なら【30バイト】" 
+          border="0" 
+          style={{ verticalAlign: 'middle', display: 'block' }} 
+        />
+      </a>
+    </div>
   </div>
             
       <div className="dual-footer-bar">
