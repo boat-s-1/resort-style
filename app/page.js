@@ -37,18 +37,22 @@ const [currentPage, setCurrentPage] = useState('home');
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
 
-  return (
+ return (
     <>
-   <header className="site-header">
-      {/* どこからでもトップに戻れるように設定 */}
-      <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>MENU</div></div>
-      <div className="header-logo-wrapper" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>
-        <div className="header-logo-sub">Luxury Relaxation Salon</div>
-        <div className="header-logo-main">Resort-Style</div>
-      </div>
+      <header className="site-header">
+        {/* メニューを押すと currentPage を 'recruit' に変更 */}
+        <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>MENU</div></div>
+        
+        {/* ロゴを押すと currentPage を 'home' に変更 */}
+        <div className="header-logo-wrapper" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>
+          <div className="header-logo-sub">Luxury Relaxation Salon</div>
+          <div className="header-logo-main">Resort-Style</div>
+        </div>
         <div className="line-trigger"><div>💬</div><div>LINE</div></div>
       </header>
-
+{/* ここでページ切り替えの判定を行います */}
+      {currentPage === 'home' ? (
+        // === トップページの中身 ===
       <section className="hero">
         <div className="slider-container">
           {sliderImages.map((image, index) => (
