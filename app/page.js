@@ -259,33 +259,20 @@ export default function Home() {
   <div style={{ textAlign: 'center', marginTop: '40px', paddingBottom: '20px' }}>
     <p style={{ fontSize: '12px', color: '#888', marginBottom: '15px' }}>提携求人サイト</p>
     
-    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', maxWidth: '600px', margin: '0 auto' }}>
-      {/* リンク1：はじ風 */}
-      <a href="https://www.fuzoku-job109.com/tokai/area_aichi-mikawa-toyohashi.html" rel="nofollow">
-        <img src="https://www.fuzoku-job109.com/img/link/link_200x40_menesu.jpg" alt="豊橋の求人情報サイト【はじ風】" border="0" style={{ display: 'block' }} />
-      </a>
-      
-      {/* リンク2：30バイト */}
-      <a href="https://www.30baito.net/tokai/area_aichi.html" rel="nofollow">
-        <img src="https://www.30baito.net/img/link/link_200x40_menesu.jpg" alt="安城/岡崎/豊橋のお仕事なら【30バイト】" border="0" style={{ display: 'block' }} />
-      </a>
-
-      {/* リンク3：俺の風 */}
-      <a href="https://www.oremichi.com/tokai/area_aichi.html" rel="nofollow">
-        <img src="https://www.oremichi.com/img/link/link_200x40.jpg" alt="三河エリアの男性求人情報サイト【俺の風】" border="0" style={{ display: 'block' }} />
-      </a>
-
-      {/* リンク4：俺の風ホスト部 */}
-      <a href="https://www.oremichi.com/hostbu/tokai/area_aichi.html" rel="nofollow">
-        <img src="https://www.oremichi.com/hostbu/img/link/link_200x40.jpg" alt="【俺の風ホスト部】で探す三河の求人" border="0" style={{ display: 'block' }} />
-      </a>
-
-      {/* リンク5：ぱふぱふなび */}
-      <a href="https://pafu2navi.com" rel="nofollow">
-        <img src="https://pafu2navi.com/images/link/200_40.jpg" alt="セクキャバ・いちゃキャバ・おっパブ情報サイト【ぱふぱふなび】" border="0" style={{ display: 'block' }} />
-      </a>
-        <a href="https://eslove.jp/chubu/aichi/shoplist/" target="_blank"><img src="https://eslove.jp/eslove_front_theme/banner/banner_200x40.jpg" alt="エステラブ" border="0" style={{ display: 'block' }} /></a>
+   <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', maxWidth: '600px', margin: '0 auto' }}>
+      {/* 既存の7つ */}
+      <a href="https://www.fuzoku-job109.com/tokai/area_aichi-mikawa-toyohashi.html" rel="nofollow"><img src="https://www.fuzoku-job109.com/img/link/link_200x40_menesu.jpg" alt="豊橋の求人情報サイト【はじ風】" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://www.30baito.net/tokai/area_aichi.html" rel="nofollow"><img src="https://www.30baito.net/img/link/link_200x40_menesu.jpg" alt="安城/岡崎/豊橋のお仕事なら【30バイト】" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://www.oremichi.com/tokai/area_aichi.html" rel="nofollow"><img src="https://www.oremichi.com/img/link/link_200x40.jpg" alt="三河エリアの男性求人情報サイト【俺の風】" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://www.oremichi.com/hostbu/tokai/area_aichi.html" rel="nofollow"><img src="https://www.oremichi.com/hostbu/img/link/link_200x40.jpg" alt="【俺の風ホスト部】で探す三河の求人" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://pafu2navi.com" rel="nofollow"><img src="https://pafu2navi.com/images/link/200_40.jpg" alt="ぱふぱふなび" border="0" style={{ display: 'block' }} /></a>
+      <a href="https://eslove.jp/chubu/aichi/shoplist/" target="_blank"><img src="https://eslove.jp/eslove_front_theme/banner/banner_200x40.jpg" alt="エステラブ" border="0" style={{ display: 'block' }} /></a>
       <a href="https://job.eslove.jp/chubu/aichi/search" target="_blank"><img src="https://job.eslove.jp/eslove_job_front_theme/img/banner/banner_200x40.jpg" alt="愛知のメンズエステ求人情報ならエステラブワーク" border="0" style={{ display: 'block' }} /></a>
+      
+      {/* 今回追加分 */}
+      <a href="https://haji-s.com/tokai/area_aichi/kariya/type_industry02" rel="nofollow">
+        <img src="https://haji-s.com/images/link/link_200x40.jpg" alt="はじめてのメンズエステアルバイト" border="0" style={{ display: 'block' }} />
+      </a>
     </div>
   </div>
                
