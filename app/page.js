@@ -264,8 +264,7 @@ return (
     </div>
   </div>
 )}
-{/* --- ここまで追加 --- */}
-     </div> </section>
+
 
 
       <section className="section">
