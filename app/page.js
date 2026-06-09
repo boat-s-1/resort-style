@@ -163,23 +163,21 @@ const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // キャン�
           </div>
        
             {/* --- ここから追加 --- */}
-<div style={{ textAlign: 'center', marginTop: '20px' }}>
-  <button 
-    onClick={() => setIsModalOpen(true)}
-    style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
-  >
-    利用規約を確認する
-  </button>
-</div>
-
-  {/* 新しいボタン */}
-  <button 
-    onClick={() => setIsCancelModalOpen(true)}
-    style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
-  >
-    キャンセルについて
-  </button>
-</div>
+<div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              利用規約を確認する
+            </button>
+            <button 
+              onClick={() => setIsCancelModalOpen(true)}
+              style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              キャンセルについて
+            </button>
+          </div>
+        </div> {/* ここでしっかりとセクションを閉じる */}
 {isModalOpen && (
   <div style={{
     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
