@@ -11,7 +11,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
   const recruitSliderImages = ['/K.png', '/KK.png'];
   const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
-
+const [isModalOpen, setIsModalOpen] = useState(false); // 追加
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -161,6 +161,45 @@ export default function Home() {
             </ul>
           </div>
         </div>
+            {/* --- ここから追加 --- */}
+<div style={{ textAlign: 'center', marginTop: '20px' }}>
+  <button 
+    onClick={() => setIsModalOpen(true)}
+    style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
+  >
+    利用規約を確認する
+  </button>
+</div>
+
+{isModalOpen && (
+  <div style={{
+    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center',
+    alignItems: 'center', zIndex: 1000, padding: '20px'
+  }}>
+    <div style={{
+      backgroundColor: '#fff', padding: '30px', borderRadius: '15px',
+      maxWidth: '500px', width: '100%', maxHeight: '80vh', overflowY: 'auto'
+    }}>
+      <h3 style={{ textAlign: 'center', color: '#333' }}>利用規約</h3>
+      <div style={{ fontSize: '13px', color: '#666', marginTop: '15px', lineHeight: '1.6' }}>
+        <p>ここに利用規約の内容を記載してください。<br />
+        例：当店は完全予約制です。<br />
+        キャンセル料は前日より発生いたします...等</p>
+      </div>
+      <button 
+        onClick={() => setIsModalOpen(false)}
+        style={{ 
+          marginTop: '20px', width: '100%', padding: '10px', 
+          background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px' 
+        }}
+      >
+        閉じる
+      </button>
+    </div>
+  </div>
+)}
+{/* --- ここまで追加 --- */}
      </section>
 
 
