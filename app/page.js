@@ -160,7 +160,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // 追加
               <li>土日祝割増：＋500円</li>
             </ul>
           </div>
-        </div>
+       
             {/* --- ここから追加 --- */}
 <div style={{ textAlign: 'center', marginTop: '20px' }}>
   <button 
@@ -200,7 +200,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // 追加
   </div>
 )}
 {/* --- ここまで追加 --- */}
-     </section>
+     </div> </section>
 
 
       <section className="section">
