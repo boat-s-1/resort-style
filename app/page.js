@@ -11,7 +11,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
   const recruitSliderImages = ['/K.png', '/KK.png'];
   const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
-const [isModalOpen, setIsModalOpen] = useState(false); // 追加
+const [isModalOpen, setIsModalOpen] = useState(false); // 利用規約用
+const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // キャンセル用 (追加)
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -171,6 +172,14 @@ const [isModalOpen, setIsModalOpen] = useState(false); // 追加
   </button>
 </div>
 
+  {/* 新しいボタン */}
+  <button 
+    onClick={() => setIsCancelModalOpen(true)}
+    style={{ background: 'none', border: 'none', color: '#cdb273', textDecoration: 'underline', cursor: 'pointer' }}
+  >
+    キャンセルについて
+  </button>
+</div>
 {isModalOpen && (
   <div style={{
     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -223,6 +232,39 @@ const [isModalOpen, setIsModalOpen] = useState(false); // 追加
       </div>
       <button 
         onClick={() => setIsModalOpen(false)}
+        style={{ 
+          marginTop: '20px', width: '100%', padding: '10px', 
+          background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px' 
+        }}
+      >
+        閉じる
+      </button>
+    </div>
+  </div>
+)}
+{/* --- ここまで追加 --- */}
+{isCancelModalOpen && (
+  <div style={{
+    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center',
+    alignItems: 'center', zIndex: 1000, padding: '20px'
+  }}>
+    <div style={{
+      backgroundColor: '#fff', padding: '30px', borderRadius: '15px',
+      maxWidth: '500px', width: '100%', maxHeight: '80vh', overflowY: 'auto'
+    }}>
+      <h3 style={{ textAlign: 'center', color: '#333' }}>キャンセルについて</h3>
+      <div style={{ fontSize: '13px', color: '#666', marginTop: '15px', lineHeight: '1.6' }}>
+        <p>ご予約のキャンセルにつきましては、以下の通りキャンセル料を申し受けます。<br />
+        前日キャンセル：ご予約コースのXX％<br />
+        当日キャンセル：ご予約コースのXX％<br />
+        無断キャンセル：ご予約コースのXX％<br />
+        ご連絡は、お電話またはLINEにてお願いいたします。<br />
+        ご予約時間に遅れる場合は、必ずご連絡ください。<br />
+        ご連絡がない場合は、キャンセル扱いとさせていただく場合がございます。</p>
+      </div>
+      <button 
+        onClick={() => setIsCancelModalOpen(false)}
         style={{ 
           marginTop: '20px', width: '100%', padding: '10px', 
           background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px' 
