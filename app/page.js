@@ -11,8 +11,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
   const recruitSliderImages = ['/K.png', '/KK.png'];
   const [currentRecruitSlide, setCurrentRecruitSlide] = useState(0);
-const [isModalOpen, setIsModalOpen] = useState(false); // 利用規約用
-const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // キャンセル用 (追加)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const formatDate = (dateStr) => {
     const dateObj = new Date(dateStr);
     const month = dateObj.getMonth() + 1;
@@ -52,7 +52,7 @@ const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // キャン�
   const dates = [...new Set(scheduleData.map(item => item.date))];
   const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
 
-  return (
+return (
     <>
       <header className="site-header">
         <div className="menu-trigger" onClick={() => setCurrentPage('recruit')}><div>＝</div><div>求人</div></div>
