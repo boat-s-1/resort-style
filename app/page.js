@@ -295,20 +295,37 @@ return (
           </section>
         </>
       ) : (
-       <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
+    <section className="section" style={{ padding: '100px 20px', minHeight: '60vh' }}>
   <h2 className="section-title-en">Recruit</h2>
   <div className="section-ornament">✧ ⚜️ ✧</div>
 
-  {/* 求人スライダーエリア */}
-  <div className="slider-container" style={{ position: 'relative', width: '100%', maxWidth: '600px', margin: '0 auto 30px', height: '300px', overflow: 'hidden', borderRadius: '15px' }}>
+  {/* 求人スライダーエリアをバナーサイズ（200x40）に調整 */}
+  <div className="slider-container" 
+       style={{ 
+         position: 'relative', 
+         width: '200px', 
+         height: '40px', 
+         margin: '0 auto 30px', 
+         overflow: 'hidden', 
+         borderRadius: '5px', // バナーらしく少し角を丸く
+         boxShadow: '0 2px 4px rgba(0,0,0,0.1)' // 視認性を高める
+       }}>
     {recruitSliderImages.map((image, index) => (
       <div 
         key={index} 
         className={`slide ${index === currentRecruitSlide ? 'active' : ''}`} 
         style={{ 
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center',
-          opacity: index === currentRecruitSlide ? 1 : 0, transition: 'opacity 1s ease-in-out'
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%',
+          backgroundImage: `url(${image})`, 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center',
+          opacity: index === currentRecruitSlide ? 1 : 0, 
+          transition: 'opacity 1s ease-in-out',
+          zIndex: index === currentRecruitSlide ? 1 : 0 // 表示中の画像を前面に
         }} 
       />
     ))}
