@@ -303,8 +303,8 @@ return (
   <div className="slider-container" 
        style={{ 
          position: 'relative', 
-         width: '1672px', 
-         height: '941px', 
+         width: '836px', 
+         height: '470px', 
          margin: '0 auto 30px', 
          overflow: 'hidden', 
          borderRadius: '5px', // バナーらしく少し角を丸く
