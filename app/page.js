@@ -400,42 +400,51 @@ return (
     </div>
   </div>
                
-      <div className="dual-footer-bar">
-       
-        <a href="https://line.me/R/ti/p/%40999csrjr" target="_blank" rel="noopener noreferrer" className="footer-btn-line">
-          <span style={{ fontSize: '24px' }}>💬</span>
-          <div className="btn-main-text-box"><span className="footer-btn-subtext">24時間受付中</span><span>LINEで予約する</span></div>
-  
-<a
-  href="https://x.com/Resort_Style_t"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="social-btn x"
->
-  𝕏
-</a>
+    <div className="dual-footer-bar">
 
-<a
-  href="https://www.instagram.com/resort.s.toyohashi/"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="social-btn instagram"
->
-  Instagram
-</a>
+  <a
+    href="https://line.me/R/ti/p/%40999csrjr"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="footer-btn-line"
+  >
+    <span style={{ fontSize: '24px' }}>💬</span>
+    <div className="btn-main-text-box">
+      <span className="footer-btn-subtext">24時間受付中</span>
+      <span>LINEで予約する</span>
+    </div>
+  </a>
 
-<a
-  href="https://bsky.app/profile/resort-style.bsky.social"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="social-btn bluesky"
->
-  Bluesky
-</a>
+</div>
 
-        </a>
-       
-      </div>
+<div className="social-links">
+  <a
+    href="https://x.com/Resort_Style_t"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="social-btn x"
+  >
+    𝕏
+  </a>
+
+  <a
+    href="https://www.instagram.com/resort.s.toyohashi/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="social-btn instagram"
+  >
+    Instagram
+  </a>
+
+  <a
+    href="https://bsky.app/profile/resort-style.bsky.social"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="social-btn bluesky"
+  >
+    Bluesky
+  </a>
+</div>
     </>
   );
 }
