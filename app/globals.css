@@ -309,3 +309,53 @@ body {
   text-align: left;
   line-height: 1.3;
 }
+
+.social-section{
+text-align:center;
+padding:40px 20px;
+}
+
+.social-section h3{
+color:#cdb273;
+margin-bottom:20px;
+letter-spacing:2px;
+}
+
+.social-links{
+display:flex;
+justify-content:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.social-btn{
+text-decoration:none;
+color:white;
+padding:12px 20px;
+border-radius:999px;
+font-weight:bold;
+min-width:120px;
+transition:.3s;
+}
+
+.social-btn:hover{
+transform:translateY(-2px);
+}
+
+.x{
+background:#000;
+}
+
+.instagram{
+background:linear-gradient(
+45deg,
+#f58529,
+#dd2a7b,
+#8134af,
+#515bd4
+);
+}
+
+.bluesky{
+background:#1185fe;
+}
