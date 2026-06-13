@@ -401,14 +401,11 @@ return (
   </div>
                
       <div className="dual-footer-bar">
-        <a href="tel:0532-xx-xxxx" className="footer-btn-call">
-          <span style={{ fontSize: '20px' }}>📞</span>
-          <div className="btn-main-text-box"><span className="footer-btn-subtext">お電話でのご予約</span><span>0532-xx-xxxx</span></div>
-        </a>
+       
         <a href="https://line.me/R/ti/p/%40999csrjr" target="_blank" rel="noopener noreferrer" className="footer-btn-line">
           <span style={{ fontSize: '24px' }}>💬</span>
           <div className="btn-main-text-box"><span className="footer-btn-subtext">24時間受付中</span><span>LINEで予約する</span></div>
-        ```
+  
 <a
   href="https://x.com/Resort_Style_t"
   target="_blank"
@@ -435,7 +432,6 @@ return (
 >
   Bluesky
 </a>
-```
 
         </a>
        
