@@ -40,7 +40,7 @@ const submitBooking = async () => {
         <label>日付</label>
         <input type="date" value={booking.date} onChange={(e) => setBooking({...booking, date: e.target.value})} style={{ display: 'block', width: '100%', marginBottom: '10px' }} />
 
-        <label>名前</label>
+        <label>セラピスト名</label>
         <input type="text" value={booking.name} onChange={(e) => setBooking({...booking, name: e.target.value})} style={{ display: 'block', width: '100%', marginBottom: '10px' }} />
 
         <label>予約時間</label>
@@ -70,6 +70,15 @@ const submitBooking = async () => {
         <select value={booking.extensionCount} onChange={(e) => setBooking({...booking, extensionCount: parseInt(e.target.value)})} style={{ width: '100%', marginBottom: '20px' }}>
           {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
         </select>
+
+　　　　<label>お客様名</label>
+<input type="text" value={booking.customerName} onChange={(e) => setBooking({...booking, customerName: e.target.value})} style={{ display: 'block', width: '100%', marginBottom: '10px' }} />
+
+<label>お客様電話番号</label>
+<input type="tel" value={booking.customerPhone} onChange={(e) => setBooking({...booking, customerPhone: e.target.value})} style={{ display: 'block', width: '100%', marginBottom: '10px' }} />
+
+<label>コメント</label>
+<textarea value={booking.note} onChange={(e) => setBooking({...booking, note: e.target.value})} style={{ display: 'block', width: '100%', marginBottom: '10px' }} />
 
         <button onClick={submitBooking} style={{ width: '100%', padding: '15px', background: '#cdb273', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
           スプレッドシートに保存
