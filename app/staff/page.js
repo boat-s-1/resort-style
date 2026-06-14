@@ -12,7 +12,7 @@ export default function StaffPage() {
   const submitBooking = async () => {
     setStatus('送信中...');
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwHJVmB6I8wna32-gtYweLoiqvog3QEF4wRt9tbiAPbq28fRGw-Mdni6Zlth8oFtg/exec', {
         method: 'POST',
         body: JSON.stringify({ type: 'booking', ...booking })
       });
