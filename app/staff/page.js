@@ -3,35 +3,39 @@ import { useState } from 'react';
 
 export default function StaffPage() {
   // 初期値に extensionCount を追加しました
-  const [booking, setBooking] = useState({
-    date: '', name: '', time: '', course: 'A', duration: '60', 
-    nomination: '初指名', nominationFee: 0, extensionCount: 0 
-  });
+ const [booking, setBooking] = useState({
+  date: '', name: '', time: '', course: 'A', duration: '60', 
+  nomination: '初指名', nominationFee: 0, extensionCount: 0,
+  note: '', customerName: '', customerPhone: '' // 追加
+});
   const [status, setStatus] = useState('');
 
 const submitBooking = async () => {
-    setStatus('送信中...');
-    try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwHJVmB6I8wna32-gtYweLoiqvog3QEF4wRt9tbiAPbq28fRGw-Mdni6Zlth8oFtg/exec', {
-        method: 'POST',
-        mode: 'no-cors', // ★ここを追加してください
-        headers: { 
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({ type: 'booking', ...booking })
-      });
+  setStatus('送信中...');
+  try {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbwHJVmB6I8wna32-gtYweLoiqvog3QEF4wRt9tbiAPbq28fRGw-Mdni6Zlth8oFtg/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+     body: JSON.stringify({ type: 'booking', ...booking })
+    });
 
-      // no-cors を使うと response.json() が使えなくなります
-      // 保存したことにして処理を続けます
-      alert('保存しました！');
-      setBooking({ date: '', name: '', time: '', course: 'A', duration: '60', nomination: '初指名', nominationFee: 0, extensionCount: 0 });
-      setStatus('保存完了');
+    alert('保存しました！');
+    
+    // 全ての項目をリセットする
+    setBooking({ 
+      date: '', name: '', time: '', course: 'A', duration: '60', 
+      nomination: '初指名', nominationFee: 0, extensionCount: 0,
+      note: '', customerName: '', customerPhone: '' 
+    });
+    setStatus('保存完了');
 
-    } catch (e) {
-      setStatus('エラーが発生しました');
-      console.error("エラー詳細:", e);
-    }
-  };
+  } catch (e) {
+    setStatus('エラーが発生しました');
+    console.error("エラー詳細:", e);
+  }
 
   return (
     <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
