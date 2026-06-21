@@ -38,7 +38,7 @@ const submitBooking = async () => {
   }
 };
 
-return (
+
 
   return (
     <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
