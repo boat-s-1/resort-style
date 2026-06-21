@@ -36,6 +36,9 @@ const submitBooking = async () => {
     setStatus('エラーが発生しました');
     console.error("エラー詳細:", e);
   }
+};
+
+return (
 
   return (
     <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
