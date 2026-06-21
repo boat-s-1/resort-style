@@ -290,7 +290,8 @@ return (
         </div>
         
         <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
-        <p>愛知県豊橋市中郷町</p></br>TEL:090-2349-6590
+         <p>愛知県豊橋市中郷町</p>
+  <p>TEL:090-2349-6590</p>
             </div>
           </section>
         </>
