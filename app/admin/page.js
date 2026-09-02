@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, therapistImageUrl } from '../../lib/supabase';
+import Operations from './Operations';
 
 const emptyTherapist = {
   id: '', name: '', slug: '', age: '', height: '', nomination_fee: 0,
@@ -32,7 +33,7 @@ export default function AdminPage() {
   const [schedules, setSchedules] = useState([]);
   const [therapistForm, setTherapistForm] = useState(emptyTherapist);
   const [scheduleForm, setScheduleForm] = useState(emptySchedule);
-  const [tab, setTab] = useState('therapists');
+  const [tab, setTab] = useState('operations');
 
   const loadData = useCallback(async () => {
     const [{ data: storeData }, { data: therapistData, error: therapistError }, { data: scheduleData }] = await Promise.all([
@@ -204,14 +205,17 @@ export default function AdminPage() {
   return (
     <main className="admin-shell">
       <header className="admin-header">
-        <div><p className="admin-kicker">RESORT-STYLE</p><h1>店舗・セラピスト管理</h1></div>
+        <div><p className="admin-kicker">RESORT-STYLE</p><h1>店舗運営ダッシュボード</h1></div>
         <div className="admin-header-actions"><a href="/" target="_blank">サイトを確認</a><button onClick={() => supabase.auth.signOut().then(() => location.reload())}>ログアウト</button></div>
       </header>
-      <nav className="admin-tabs">
+      <nav className="admin-tabs admin-main-tabs">
+        <button className={tab === 'operations' ? 'active' : ''} onClick={() => setTab('operations')}>顧客・予約・売上・稼働</button>
         <button className={tab === 'therapists' ? 'active' : ''} onClick={() => setTab('therapists')}>プロフィール管理</button>
         <button className={tab === 'schedules' ? 'active' : ''} onClick={() => setTab('schedules')}>出勤・店舗管理</button>
       </nav>
       {message && <p className="admin-message">{message}</p>}
+
+      {tab === 'operations' && <Operations stores={stores} therapists={therapists} schedules={schedules} notify={setMessage} />}
 
       {tab === 'therapists' && <>
         <form className="admin-panel admin-form" onSubmit={saveTherapist}>
