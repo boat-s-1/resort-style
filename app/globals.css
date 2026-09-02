@@ -476,6 +476,19 @@ background:#1185fe;
 .admin-badge.completed { background: #e7f7ef; color: #16754b; }
 .admin-badge.cancelled, .admin-badge.no_show, .admin-badge.danger { background: #fdecec; color: #ad3737; }
 .admin-empty { padding: 24px; color: #8b817d; text-align: center; }
+.admin-section-heading { margin: 22px 0 12px; font-size: 20px; }
+.admin-room-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.admin-room-card { padding: 18px; border: 1px solid #ded8cf; border-radius: 14px; background: #fff; box-shadow: 0 6px 20px rgba(50,42,40,.05); }
+.admin-room-card.in-use { border-color: #16a0ad; background: #f0fbfc; }
+.admin-room-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.admin-room-card-head h3 { font-size: 17px; color: #6c582d; }
+.admin-room-card-head span { padding: 5px 9px; border-radius: 999px; background: #eef1ed; color: #59705b; font-size: 11px; font-weight: 800; }
+.admin-room-card.in-use .admin-room-card-head span { background: #0c8c9e; color: #fff; }
+.admin-room-card > strong { color: #087181; font-size: 19px; }
+.admin-room-card p { margin-top: 6px; color: #625a57; }
+.admin-room-card small { color: #8b817d; }
+.admin-room-empty { min-height: 44px; display: grid; place-items: center; color: #8b817d !important; }
+.admin-room-next { margin-top: 13px !important; padding-top: 11px; border-top: 1px dashed #d8d1ca; font-size: 12px; }
 .admin-primary:disabled { opacity: .55; cursor: wait; }
 .admin-message { margin: 12px 0; padding: 12px 14px; border-radius: 9px; background: #eef9fa; color: #087181; font-size: 14px; }
 .admin-image-preview { width: 130px; height: 160px; border-radius: 10px; object-fit: cover; }
@@ -499,6 +512,7 @@ background:#1185fe;
   .admin-main-tabs, .admin-subtabs { grid-template-columns: 1fr 1fr; }
   .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-grid-3 { grid-template-columns: 1fr; }
+  .admin-room-grid { grid-template-columns: 1fr 1fr; }
   .store-tabs { gap: 5px; padding-inline: 10px; }
   .store-tabs button { min-height: 44px; font-size: 13px; }
 }
