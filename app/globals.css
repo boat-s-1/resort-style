@@ -359,3 +359,111 @@ background:linear-gradient(
 .bluesky{
 background:#1185fe;
 }
+
+/* Store selector */
+.store-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 800px;
+  margin: 18px auto 0;
+  padding: 8px 16px;
+  background: rgba(252, 251, 250, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.store-tabs button {
+  min-height: 48px;
+  border: 1px solid #d9c38d;
+  border-radius: 999px;
+  background: #fff;
+  color: #8d7333;
+  font: 700 15px/1 sans-serif;
+  cursor: pointer;
+}
+
+.store-tabs button.active {
+  color: #fff;
+  border-color: #0c8c9e;
+  background: linear-gradient(135deg, #0c8c9e, #28afba);
+  box-shadow: 0 6px 18px rgba(12, 140, 158, 0.24);
+}
+
+.selected-store-label { margin: -12px 0 18px; color: #0c8c9e; font-weight: 700; }
+.empty-store-message { padding: 26px 12px; color: #887c78; text-align: center; }
+.card-meta { min-height: 20px; color: #756a67; font: 12px/1.4 sans-serif; }
+
+/* Therapist profile */
+.profile-state { min-height: 60vh; padding: 80px 20px; text-align: center; }
+.profile-container { min-height: 100vh; padding: 30px 18px 90px; max-width: 680px; margin: 0 auto; background: #faf8f5; }
+.back-link { display: inline-block; margin-bottom: 20px; color: #9c7d35; text-decoration: none; }
+.profile-card, .profile-schedule { background: #fff; border: 1px solid #eee5d7; border-radius: 20px; padding: 24px; box-shadow: 0 8px 28px rgba(74, 62, 61, 0.07); }
+.profile-image { width: 100%; max-height: 620px; border-radius: 14px; object-fit: cover; }
+.profile-store { margin-top: 18px; color: #0c8c9e; font: 700 14px/1.5 sans-serif; }
+.profile-name { color: #8d7333; text-align: center; font-size: 30px; }
+.profile-stats, .nomination-fee { text-align: center; color: #756a67; }
+.nomination-fee { color: #b89742; font-weight: 700; }
+.sns-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.sns-links a { border: 1px solid #ded5c8; border-radius: 999px; padding: 7px 14px; color: #4a3e3d; text-decoration: none; font: 13px/1 sans-serif; }
+.shop-comment { margin: 22px 0; padding: 18px; border-radius: 12px; background: #fdf9ef; text-align: left; }
+.shop-comment h2 { margin-bottom: 6px; color: #9c7d35; font-size: 16px; }
+.profile-text { white-space: pre-wrap; text-align: left; }
+.profile-schedule { margin-top: 22px; }
+.profile-schedule h2 { margin-bottom: 15px; color: #0c8c9e; font-size: 20px; text-align: center; }
+.profile-schedule-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #eee; }
+.profile-schedule-row:last-child { border-bottom: 0; }
+.profile-schedule-row div { display: flex; flex-direction: column; }
+.profile-schedule-row span { color: #0c8c9e; font: 12px/1.5 sans-serif; }
+
+/* Admin */
+.admin-shell { min-height: 100vh; max-width: 1000px; margin: 0 auto; padding: 32px 18px 90px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif; color: #302b2a; }
+.admin-login-shell { display: grid; place-items: center; }
+.admin-login { width: min(100%, 460px); }
+.admin-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.admin-header h1 { font-size: clamp(23px, 4vw, 34px); line-height: 1.3; }
+.admin-kicker { color: #0c8c9e; font-size: 12px; font-weight: 800; letter-spacing: .18em; }
+.admin-header-actions { display: flex; align-items: center; gap: 10px; }
+.admin-header-actions a, .admin-header-actions button, .admin-panel-title button, .admin-person-card button, .admin-schedule-list button { border: 1px solid #d8c99e; border-radius: 8px; background: #fff; padding: 9px 12px; color: #69582e; cursor: pointer; text-decoration: none; font: 14px/1 sans-serif; }
+.admin-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.admin-tabs button { min-height: 48px; border: 0; border-radius: 10px; background: #eee9df; color: #6e625f; font-size: 15px; font-weight: 700; cursor: pointer; }
+.admin-tabs button.active { background: #0c8c9e; color: #fff; }
+.admin-panel { padding: 24px; border: 1px solid #e6ddcf; border-radius: 16px; background: #fff; box-shadow: 0 8px 30px rgba(50, 42, 40, .06); }
+.admin-panel-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.admin-panel h2 { font-size: 21px; }
+.admin-form { display: grid; gap: 16px; }
+.admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.admin-form label { display: grid; gap: 6px; color: #655b58; font-size: 14px; font-weight: 700; }
+.admin-form input, .admin-form select, .admin-form textarea { width: 100%; min-height: 44px; border: 1px solid #d9d1ca; border-radius: 8px; padding: 10px 12px; background: #fff; color: #302b2a; font: inherit; }
+.admin-form textarea { resize: vertical; }
+.admin-form fieldset { border: 1px solid #e5ddd4; border-radius: 10px; padding: 13px; }
+.admin-form legend { padding: 0 5px; font-size: 14px; font-weight: 700; }
+.admin-checks { display: flex; flex-wrap: wrap; gap: 14px; }
+.admin-checks label, .admin-switch { display: flex !important; align-items: center; gap: 7px !important; }
+.admin-checks input, .admin-switch input { width: 18px; min-height: 18px; }
+.admin-primary { min-height: 50px; border: 0; border-radius: 10px; background: linear-gradient(135deg, #0c8c9e, #24a9b6); color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; }
+.admin-primary:disabled { opacity: .55; cursor: wait; }
+.admin-message { margin: 12px 0; padding: 12px 14px; border-radius: 9px; background: #eef9fa; color: #087181; font-size: 14px; }
+.admin-image-preview { width: 130px; height: 160px; border-radius: 10px; object-fit: cover; }
+.admin-card-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.admin-person-card { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid #e6ded3; border-radius: 13px; background: #fff; }
+.admin-person-card img { width: 76px; height: 92px; border-radius: 9px; object-fit: cover; }
+.admin-person-card h3 { color: #8d7333; }
+.admin-person-card p { color: #766b67; font-size: 13px; }
+.admin-person-card span { color: #0c8c9e; font-size: 12px; font-weight: 700; }
+.admin-schedule-list { display: grid; gap: 10px; margin-top: 18px; }
+.admin-schedule-list article { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 16px; border: 1px solid #e6ded3; border-radius: 12px; background: #fff; }
+.admin-schedule-list article > div:last-child { display: flex; gap: 7px; }
+.admin-schedule-list .danger { color: #b53c3c; border-color: #e9baba; }
+
+@media (max-width: 640px) {
+  .admin-header { align-items: flex-start; flex-direction: column; }
+  .admin-grid, .admin-card-list { grid-template-columns: 1fr; }
+  .admin-person-card { grid-template-columns: 64px 1fr auto; }
+  .admin-person-card img { width: 64px; height: 80px; }
+  .admin-schedule-list article { align-items: flex-start; flex-direction: column; }
+  .store-tabs { gap: 5px; padding-inline: 10px; }
+  .store-tabs button { min-height: 44px; font-size: 13px; }
+}
