@@ -196,9 +196,6 @@ return (
             <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2' }}>
               <li>指名料：別途</li>
               <li>延長：20分 4,000円</li>
-              <li>ルーム代：500円</li>
-              <li>深夜割増（22:00以降）：＋500円</li>
-              <li>土日祝割増：＋500円</li>
             </ul>
           </div>
        
