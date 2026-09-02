@@ -11,7 +11,7 @@ export default function Home() {
   const [activeStore, setActiveStore] = useState('');
   const [dataLoading, setDataLoading] = useState(true);
   const [events, setEvents] = useState([]);
-  const sliderImages = ['/hero-pop.png'];
+  const sliderImages = ['/hero-pop.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentPage, setCurrentPage] = useState('home');
   const recruitSliderImages = ['/K.png', '/KK.png'];
