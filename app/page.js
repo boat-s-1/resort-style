@@ -2,9 +2,14 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import { supabase, therapistImageUrl } from '../lib/supabase';
 
 export default function Home() {
   const [scheduleData, setScheduleData] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [therapists, setTherapists] = useState([]);
+  const [activeStore, setActiveStore] = useState('');
+  const [dataLoading, setDataLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const sliderImages = ['/hero.jpg'];
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -22,16 +27,24 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // データ取得
-    fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          if (data.schedule) setScheduleData(data.schedule);
-          if (data.events) setEvents(data.events);
-        }
-      })
-      .catch(err => console.error("読み込みエラー:", err));
+    // Supabaseから店舗・プロフィール・出勤情報を取得
+    Promise.all([
+      supabase.from('resort_stores').select('*').eq('is_active', true).order('display_order'),
+      supabase.from('resort_therapists').select('*, resort_therapist_stores(store_id)').eq('is_published', true).order('display_order').order('name'),
+      supabase.from('resort_schedules').select('*').eq('is_published', true).gte('work_date', new Date().toISOString().slice(0, 10)).order('work_date').order('start_time'),
+    ]).then(([storeResult, therapistResult, scheduleResult]) => {
+      if (storeResult.error) throw storeResult.error;
+      if (therapistResult.error) throw therapistResult.error;
+      if (scheduleResult.error) throw scheduleResult.error;
+      const storeRows = storeResult.data || [];
+      setStores(storeRows);
+      setActiveStore(storeRows[0]?.code || '');
+      setTherapists((therapistResult.data || []).map((item) => ({
+        ...item,
+        store_ids: (item.resort_therapist_stores || []).map((relation) => relation.store_id),
+      })));
+      setScheduleData(scheduleResult.data || []);
+    }).catch(err => console.error('Supabase読み込みエラー:', err)).finally(() => setDataLoading(false));
 
     // メインスライダー
     const timer = setInterval(() => {
@@ -49,8 +62,17 @@ export default function Home() {
     };
   }, []);
 
-  const dates = [...new Set(scheduleData.map(item => item.date))];
-  const uniqueTherapists = [...new Set(scheduleData.map(item => item.therapist_name))];
+  const selectedStore = stores.find((store) => store.code === activeStore);
+  const storeSchedules = scheduleData.filter((item) => item.store_id === selectedStore?.id);
+  const storeTherapists = therapists.filter((item) => item.store_ids.includes(selectedStore?.id));
+  const dates = [...new Set(storeSchedules.map(item => item.work_date))];
+  const formatWorkTime = (entry) => {
+    if (!entry) return '-';
+    const start = entry.start_time?.slice(0, 5);
+    const end = entry.end_time?.slice(0, 5);
+    if (start && end) return `${start}〜${end}`;
+    return start || entry.note || '出勤';
+  };
 
 return (
     <>
@@ -74,6 +96,18 @@ return (
             </div>
           </section>
 
+      <nav className="store-tabs" aria-label="店舗を選択">
+        {stores.map((store) => (
+          <button
+            key={store.id}
+            className={activeStore === store.code ? 'active' : ''}
+            onClick={() => setActiveStore(store.code)}
+          >
+            {store.name}
+          </button>
+        ))}
+      </nav>
+
       {/* イベント情報エリア */}
       {events && events.length > 0 && (
         <div className="event-section" style={{ marginTop: '50px', padding: '20px', background: '#fff9f0', borderRadius: '15px', border: '1px solid #cdb273', maxWidth: '800px', margin: '50px auto' }}>
@@ -93,7 +127,11 @@ return (
         <div className="section-ornament">✧ ⚜️ ✧</div>
         <p className="section-title-ja">出勤スケジュール</p>
         
+        <p className="selected-store-label">{selectedStore?.name || ''}の出勤予定</p>
         <div style={{ overflowX: 'auto', background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          {!dataLoading && (!dates.length || !storeTherapists.length) ? (
+            <p className="empty-store-message">現在、公開中の出勤予定はありません。</p>
+          ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr>
@@ -102,14 +140,14 @@ return (
               </tr>
             </thead>
             <tbody>
-              {uniqueTherapists.map(t => (
-                <tr key={t}>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{t}</td>
+              {storeTherapists.map(t => (
+                <tr key={t.id}>
+                  <td style={{ padding: '8px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{t.name}</td>
                   {dates.map(d => {
-                    const entry = scheduleData.find(item => item.therapist_name === t && item.date === d);
+                    const entry = storeSchedules.find(item => item.therapist_id === t.id && item.work_date === d);
                     return (
                       <td key={d} style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                        {entry ? entry.status : '-'}
+                        {formatWorkTime(entry)}
                       </td>
                     );
                   })}
@@ -117,6 +155,7 @@ return (
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </section>
 
@@ -125,11 +164,12 @@ return (
         <div className="section-ornament">✧ ⚜️ ✧</div>
         <p className="section-title-ja">セラピスト一覧</p>
         <div className="cards">
-          {uniqueTherapists.map((t, index) => (
-            <div className="card" key={index}>
-              <img src={`/therapist${index + 1}.jpg`} alt={t} onError={(e) => e.target.src = '/default.jpg'} />
-              <h3>{t}</h3>
-              <a href={`/therapist/${t}`} className="card-link">› PROFILE</a>
+          {storeTherapists.map((t) => (
+            <div className="card" key={t.id}>
+              <img src={therapistImageUrl(t.image_path)} alt={t.name} />
+              <h3>{t.name}</h3>
+              {(t.age || t.height) && <p className="card-meta">{t.age ? `${t.age}歳` : ''}{t.age && t.height ? ' / ' : ''}{t.height ? `${t.height}cm` : ''}</p>}
+              <a href={`/therapist/${t.slug}`} className="card-link">› PROFILE</a>
             </div>
           ))}
         </div>

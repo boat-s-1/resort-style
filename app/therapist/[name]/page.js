@@ -3,79 +3,72 @@
 export const dynamic = 'force-dynamic';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase, therapistImageUrl } from '../../../lib/supabase';
 
 export default function TherapistProfile() {
   const params = useParams();
-  const therapistName = decodeURIComponent(params.name);
+  const slug = decodeURIComponent(params.name);
   const [profile, setProfile] = useState(null);
+  const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-    fetch('https://script.google.com/macros/s/AKfycbzUSn_oR0zIkj4V0iUKoceNhWmzbxg8utL5U2HjlQQ8e9KlhInJuB5_yEGDKgcKAq_q/exec')
-      .then(res => res.json())
-      .then(data => {
-        if (data) {
-          // 1. プロフィールを探す
-          const foundProfile = data.profiles.find(p => p.name === therapistName);
-          setProfile(foundProfile);
+  useEffect(() => {
+    async function loadProfile() {
+      const { data: therapist, error } = await supabase
+        .from('resort_therapists')
+        .select('*, resort_therapist_stores(resort_stores(name))')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .maybeSingle();
+      if (!error && therapist) {
+        setProfile(therapist);
+        const { data: scheduleRows } = await supabase
+          .from('resort_schedules')
+          .select('*, resort_stores(name)')
+          .eq('therapist_id', therapist.id)
+          .eq('is_published', true)
+          .gte('work_date', new Date().toISOString().slice(0, 10))
+          .order('work_date')
+          .order('start_time');
+        setSchedule(scheduleRows || []);
+      }
+      setLoading(false);
+    }
+    loadProfile();
+  }, [slug]);
 
-          // 2. ★追加：その子の出勤スケジュールだけを抽出
-          const foundSchedule = data.schedule.filter(s => s.therapist_name === therapistName);
-          setSchedule(foundSchedule); // ※stateに schedule を追加してください
-        }
-        setLoading(false);
-      });
-  }, [therapistName]);
+  if (loading) return <div className="profile-state">読み込み中…</div>;
+  if (!profile) return <div className="profile-state">セラピストが見つかりません。<br /><a href="/">トップへ戻る</a></div>;
 
-  if (loading) return <div>Loading...</div>;
-  if (!profile) return <div>セラピストが見つかりません。</div>;
+  const stores = profile.resort_therapist_stores?.map((item) => item.resort_stores?.name).filter(Boolean).join('・');
 
   return (
-    <div className="profile-container">
-      <a href="/" className="back-link">← BACK TO HOME</a>
-      
-      <div className="profile-card">
-        <img src={profile.image_url} alt={profile.name} className="profile-image" />
-        <h1 className="profile-name">{profile.name} <span style={{fontSize:'16px'}}>({profile.age}歳)</span></h1>
-        <p className="nomination-fee">指名料：{profile.nomination_fee}円</p>
-        
+    <main className="profile-container">
+      <a href="/" className="back-link">← トップページに戻る</a>
+      <article className="profile-card">
+        <img src={therapistImageUrl(profile.image_path)} alt={profile.name} className="profile-image" />
+        <p className="profile-store">{stores || 'Resort-Style'}</p>
+        <h1 className="profile-name">{profile.name}</h1>
+        {(profile.age || profile.height) && <p className="profile-stats">{profile.age ? `${profile.age}歳` : ''}{profile.age && profile.height ? ' / ' : ''}{profile.height ? `${profile.height}cm` : ''}</p>}
+        <p className="nomination-fee">指名料：{Number(profile.nomination_fee || 0).toLocaleString()}円</p>
         <div className="sns-links">
-          {profile.x_url && <a href={profile.x_url} target="_blank">X</a>}
-          {profile.insta_url && <a href={profile.insta_url} target="_blank">Instagram</a>}
-          {profile.bsky_url && <a href={profile.bsky_url} target="_blank">Bluesky</a>}
+          {profile.x_url && <a href={profile.x_url} target="_blank" rel="noopener noreferrer">X</a>}
+          {profile.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer">Instagram</a>}
+          {profile.bluesky_url && <a href={profile.bluesky_url} target="_blank" rel="noopener noreferrer">Bluesky</a>}
         </div>
-
-        <div className="shop-comment">
-          <h4>店長からの紹介</h4>
-          <p>{profile.comment}</p>
-        </div>
-
-        <p className="profile-text">{profile.profile_text}</p>
-      </div>
-
-            <div className="schedule-area" style={{ marginTop: '30px', background: 'white', padding: '20px', borderRadius: '20px' }}>
-        <h3 style={{ textAlign: 'center', color: '#cdb273' }}>{therapistName}の出勤予定</h3>
-        <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse' }}>
-          {schedule.map((s, idx) => (
-            <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '10px' }}>{s.date}</td>
-              <td style={{ padding: '10px', textAlign: 'right' }}>{s.status}</td>
-            </tr>
-          ))}
-        </table>
-      </div>
-
-      <style jsx>{`
-        .profile-container { padding: 40px 20px; max-width: 600px; margin: 0 auto; background: #fafafa; }
-        .profile-card { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .profile-image { width: 150px; height: 150px; border-radius: 50%; border: 3px solid #cdb273; object-fit: cover; }
-        .nomination-fee { color: #cdb273; font-weight: bold; margin: 10px 0; }
-        .sns-links { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
-        .sns-links a { color: #333; text-decoration: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
-        .shop-comment { background: #fdfbf7; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
-        .profile-text { text-align: left; line-height: 1.8; white-space: pre-wrap; }
-      `}</style>
-    </div>
+        {profile.manager_comment && <section className="shop-comment"><h2>店長からの紹介</h2><p>{profile.manager_comment}</p></section>}
+        {profile.profile_text && <p className="profile-text">{profile.profile_text}</p>}
+      </article>
+      <section className="profile-schedule">
+        <h2>{profile.name}の出勤予定</h2>
+        {schedule.length ? schedule.map((item) => (
+          <div className="profile-schedule-row" key={item.id}>
+            <div><strong>{item.work_date}</strong><span>{item.resort_stores?.name}</span></div>
+            <p>{item.start_time?.slice(0, 5) || '--:--'}〜{item.end_time?.slice(0, 5) || '--:--'}{item.note ? `　${item.note}` : ''}</p>
+          </div>
+        )) : <p className="empty-store-message">現在、公開中の出勤予定はありません。</p>}
+      </section>
+    </main>
   );
 }
