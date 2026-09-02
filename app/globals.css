@@ -65,7 +65,7 @@ body {
   position: relative;
   /* 横 1200px × 縦 800px（3:2）前後の美しい高級リゾート画像が */
   /* スマホの横幅いっぱいにジャストフィットする高さに調整 */
-  min-height: 48vh; 
+  height: clamp(180px, 56.25vw, 720px);
   display: flex;
   align-items: center;
   justify-content: center;
