@@ -25,6 +25,8 @@ export default function Operations({ stores, therapists, schedules, notify }) {
   const [bookings, setBookings] = useState([]);
   const [customer, setCustomer] = useState(blankCustomer);
   const [booking, setBooking] = useState(blankBooking);
+  const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
+  const [quickCustomer, setQuickCustomer] = useState(blankCustomer);
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -84,6 +86,28 @@ export default function Operations({ stores, therapists, schedules, notify }) {
     notify(error ? (error.code === '23505' ? '同じ電話番号の顧客が登録済みです。' : `保存できませんでした：${error.message}`) : '顧客情報を保存しました。');
     if (!error) { setCustomer(blankCustomer); await load(); } setSaving(false);
   }
+  async function saveQuickCustomer() {
+    const name = quickCustomer.name.trim();
+    const phone = quickCustomer.phone.trim();
+    if (!name || !phone) return notify('名前と電話番号を入力してください。');
+    setSaving(true);
+    const { data: existing, error: findError } = await supabase.from('resort_customers').select('*').eq('phone', phone).maybeSingle();
+    if (findError) { notify(`顧客を確認できませんでした：${findError.message}`); setSaving(false); return; }
+    if (existing) {
+      setBooking((prev) => ({ ...prev, customer_id: existing.id }));
+      setQuickCustomer(blankCustomer); setQuickCustomerOpen(false);
+      notify('同じ電話番号の顧客が登録済みのため、既存顧客を選択しました。');
+      setSaving(false); return;
+    }
+    const payload = { name, phone, line_name: quickCustomer.line_name?.trim() || null, notes: quickCustomer.notes || '', caution: quickCustomer.caution || '', is_blocked: false };
+    const { data, error } = await supabase.from('resort_customers').insert(payload).select('*').single();
+    if (error) { notify(error.code === '23505' ? '同じ電話番号の顧客が登録済みです。' : `保存できませんでした：${error.message}`); setSaving(false); return; }
+    setCustomers((prev) => [data, ...prev.filter((c) => c.id !== data.id)]);
+    setBooking((prev) => ({ ...prev, customer_id: data.id, is_first_visit: true }));
+    setQuickCustomer(blankCustomer); setQuickCustomerOpen(false);
+    notify('新規顧客を登録し、この予約の顧客に選択しました。');
+    setSaving(false);
+  }
   async function saveBooking(e) {
     e.preventDefault(); setSaving(true);
     const payload = { store_id: Number(booking.store_id), room_number: Number(booking.room_number), therapist_id: booking.therapist_id, customer_id: booking.customer_id, booking_date: booking.booking_date, start_time: booking.start_time, duration_minutes: Number(booking.duration_minutes), course_name: booking.course_name, base_price: Number(booking.base_price || 0), nomination_fee: Number(booking.nomination_fee || 0), extension_fee: Number(booking.extension_fee || 0), discount: Number(booking.discount || 0), therapist_payout: Number(booking.therapist_payout || 0), payment_method: booking.payment_method, status: booking.status, is_first_visit: booking.is_first_visit, notes: booking.notes };
@@ -107,7 +131,10 @@ export default function Operations({ stores, therapists, schedules, notify }) {
     <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
     {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
     {view === 'dashboard' && <><div className="admin-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /></div><Table head={['店舗','会計件数','売上','バック','店舗実質売上']} rows={storeRows.map((s) => [s.name,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout)])} /></>}
-    {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{booking.id ? '予約・会計を編集' : '予約を登録'}</h2>{booking.id && <button type="button" onClick={() => setBooking(blankBooking)}>新規登録に戻る</button>}</div><div className="admin-grid admin-grid-3">
+    {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{booking.id ? '予約・会計を編集' : '予約を登録'}</h2>{booking.id && <button type="button" onClick={() => setBooking(blankBooking)}>新規登録に戻る</button>}</div>
+      {!booking.id && <div style={{marginBottom:'18px'}}><button type="button" onClick={()=>setQuickCustomerOpen((v)=>!v)}>{quickCustomerOpen ? '新規顧客登録を閉じる' : '＋ 新規顧客登録'}</button></div>}
+      {quickCustomerOpen && !booking.id && <div className="admin-panel" style={{marginBottom:'22px',padding:'18px'}}><div className="admin-panel-title"><h3>新規顧客を登録</h3></div><div className="admin-grid"><Input label="名前" value={quickCustomer.name} set={(v)=>setQuickCustomer({...quickCustomer,name:v})}/><Input label="電話番号" type="tel" value={quickCustomer.phone} set={(v)=>setQuickCustomer({...quickCustomer,phone:v})}/><Input label="LINE名" value={quickCustomer.line_name||''} set={(v)=>setQuickCustomer({...quickCustomer,line_name:v})}/></div><label>接客メモ<textarea rows="2" value={quickCustomer.notes} onChange={(e)=>setQuickCustomer({...quickCustomer,notes:e.target.value})}/></label><label>注意事項<textarea rows="2" value={quickCustomer.caution} onChange={(e)=>setQuickCustomer({...quickCustomer,caution:e.target.value})}/></label><button className="admin-primary" type="button" disabled={saving} onClick={saveQuickCustomer}>顧客を登録して予約に選択</button></div>}
+      <div className="admin-grid admin-grid-3">
       <Select label="顧客" value={booking.customer_id} set={(v)=>setBooking({...booking,customer_id:v})} options={customers.map((c)=>[c.id,`${c.name}（${c.phone}）${c.is_blocked?' ⚠':''}`])} />
       <Select label="店舗" value={booking.store_id} set={(v)=>setBooking({...booking,store_id:v})} options={stores.map((s)=>[s.id,s.name])} />
       <Select label="ルーム" value={booking.room_number} set={(v)=>setBooking({...booking,room_number:v})} options={[[1,'ルーム1'],[2,'ルーム2']]} />
