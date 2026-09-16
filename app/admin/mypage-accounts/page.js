@@ -1,0 +1,11 @@
+'use client';
+import { useEffect,useState } from 'react';
+import { supabase } from '../../../lib/supabase';
+
+export default function TherapistAccounts(){
+ const [therapists,setTherapists]=useState([]),[therapistId,setTherapistId]=useState(''),[loginId,setLoginId]=useState(''),[password,setPassword]=useState(''),[message,setMessage]=useState(''),[ready,setReady]=useState(false);
+ useEffect(()=>{(async()=>{const {data:{session}}=await supabase.auth.getSession(); if(!session){setMessage('先に管理画面へログインしてください。');setReady(true);return;} const {data:admin}=await supabase.from('resort_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(); if(!admin){setMessage('管理者権限がありません。');setReady(true);return;} const {data}=await supabase.from('resort_therapists').select('id,name,slug').order('name');setTherapists(data||[]);setReady(true);})();},[]);
+ async function save(e){e.preventDefault();if(!therapistId)return;setMessage('発行中…');const {error}=await supabase.rpc('resort_set_therapist_account',{p_therapist_id:therapistId,p_login_id:loginId.trim(),p_password:password,p_active:true});if(error){setMessage(`発行できませんでした：${error.message}`);return;}setMessage('マイページを発行しました。ログインIDとパスワードを女の子へ共有してください。');setPassword('');}
+ if(!ready)return <main className="admin-shell"><p>確認中…</p></main>;
+ return <main className="admin-shell"><header className="admin-header"><div><p className="admin-kicker">RESORT-STYLE</p><h1>女の子マイページ発行</h1></div><a href="/admin">← 管理画面へ戻る</a></header><form className="admin-panel admin-form" onSubmit={save}><p>女の子を選び、専用のログインIDとパスワードを設定します。再発行すると新しいパスワードに変更されます。</p><label>女の子<select value={therapistId} onChange={e=>{setTherapistId(e.target.value);const t=therapists.find(x=>x.id===e.target.value);if(t&&!loginId)setLoginId(t.slug||'')}} required><option value="">選択してください</option>{therapists.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label><label>ログインID<input value={loginId} onChange={e=>setLoginId(e.target.value)} minLength="3" autoCapitalize="none" required/></label><label>パスワード<input type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength="6" required/></label><button className="admin-primary">マイページを発行・更新</button>{message&&<p className="admin-message">{message}</p>}<p>女の子用ログインページ：<a href="/mypage" target="_blank">/mypage</a></p></form></main>;
+}
