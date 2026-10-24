@@ -17,16 +17,17 @@ export default function TherapistProfile() {
     async function loadProfile() {
       const { data: therapist, error } = await supabase
         .from('resort_therapists')
-        .select('*, resort_therapist_stores(resort_stores(name))')
+        .select('*, resort_therapist_stores(resort_stores(name,brand_code))')
         .eq('slug', slug)
-        .eq('is_published', true)
+        .eq('is_published', true).contains('brand_codes', ['resort-style'])
         .maybeSingle();
       if (!error && therapist) {
         setProfile(therapist);
         const { data: scheduleRows } = await supabase
           .from('resort_schedules')
-          .select('*, resort_stores(name)')
+          .select('*, resort_stores!inner(name,brand_code)')
           .eq('therapist_id', therapist.id)
+          .eq('resort_stores.brand_code', 'resort-style')
           .eq('is_published', true)
           .gte('work_date', new Date().toISOString().slice(0, 10))
           .order('work_date')
@@ -41,7 +42,7 @@ export default function TherapistProfile() {
   if (loading) return <div className="profile-state">読み込み中…</div>;
   if (!profile) return <div className="profile-state">セラピストが見つかりません。<br /><a href="/">トップへ戻る</a></div>;
 
-  const stores = profile.resort_therapist_stores?.map((item) => item.resort_stores?.name).filter(Boolean).join('・');
+  const stores = profile.resort_therapist_stores?.filter(item => item.resort_stores?.brand_code === 'resort-style').map((item) => item.resort_stores?.name).filter(Boolean).join('・');
 
   return (
     <main className="profile-container">
@@ -72,3 +73,4 @@ export default function TherapistProfile() {
     </main>
   );
 }
+
