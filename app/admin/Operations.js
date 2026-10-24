@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import MarronBookingFields from './MarronBookingFields';
 import ExpensesPanel from './ExpensesPanel';
+import customerSearch from '../../lib/customerSearch.cjs';
+const {filterCustomers,customerOptions}=customerSearch;
 import pricing from '../../lib/marronPricing.cjs';
 const { calculateMarron } = pricing;
 
@@ -35,6 +37,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
   const [quickCustomer, setQuickCustomer] = useState(newCustomer);
   const [search, setSearch] = useState('');
+  const [bookingCustomerSearch,setBookingCustomerSearch]=useState('');
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -78,6 +81,9 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     return { ...t, count: rows.length, minutes, utilization: workMinutes ? Math.min(100, Math.round(minutes / workMinutes * 100)) : null, sales: rows.reduce((n, b) => n + b.total_amount, 0), payout: rows.reduce((n, b) => n + b.therapist_payout, 0), nomination: rows.filter((b) => b.nomination_fee > 0).length, repeat: rows.filter((b) => !b.is_first_visit).length };
   }).sort((a, b) => b.sales - a.sales);
   const brandCustomers = customers.filter(c => c[brand === 'marron' ? 'uses_marron' : 'uses_resort_style']);
+  const bookingCustomerMatches=filterCustomers(brandCustomers,bookingCustomerSearch);
+  const bookingCustomerOptions=customerOptions(brandCustomers,bookingCustomerMatches,booking.customer_id);
+  const selectedBookingCustomer=brandCustomers.find(c=>c.id===booking.customer_id);
   const customerRows = brandCustomers.filter((c) => `${c.name}${c.phone}${c.line_name || ''}`.toLowerCase().includes(search.toLowerCase())).map((c) => {
     const rows = bookings.filter((b) => b.customer_id === c.id && b.status === 'completed');
     return { ...c, visits: rows.length, last: rows.map((b) => b.booking_date).sort().at(-1) || '—', total: rows.reduce((n, b) => n + b.total_amount, 0) };
@@ -151,7 +157,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     if (!error) {
       const { error: customerError } = await supabase.from('resort_customers').update({ [brand === 'marron' ? 'uses_marron' : 'uses_resort_style']: true }).eq('id', booking.customer_id);
       if (customerError) notify('予約は保存しましたが、顧客の利用店舗を更新できませんでした。顧客管理で確認してください。');
-      setBooking(newBooking()); await load();
+      setBooking(newBooking());setBookingCustomerSearch(''); await load();
     } setSaving(false);
   }
   async function removeBooking(id) {
@@ -170,12 +176,18 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
     {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
     {view === 'dashboard' && <><div className="admin-metrics admin-finance-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','会計件数','売上','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>利益＝対象月の店舗実質売上−対象月の経費</p><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></>}
-    {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{booking.id ? '予約・会計を編集' : '予約を登録'}</h2>{booking.id && <button type="button" onClick={() => setBooking(newBooking())}>新規登録に戻る</button>}</div>
+    {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{booking.id ? '予約・会計を編集' : '予約を登録'}</h2>{booking.id && <button type="button" onClick={() => {setBooking(newBooking());setBookingCustomerSearch('');}}>新規登録に戻る</button>}</div>
       {!booking.id && <div style={{marginBottom:'18px'}}><button type="button" onClick={()=>setQuickCustomerOpen((v)=>!v)}>{quickCustomerOpen ? '新規顧客登録を閉じる' : '＋ 新規顧客登録'}</button></div>}
       {quickCustomerOpen && !booking.id && <div className="admin-panel" style={{marginBottom:'22px',padding:'18px'}}><div className="admin-panel-title"><h3>新規顧客を登録</h3></div><div className="admin-grid"><Input label="名前" value={quickCustomer.name} set={(v)=>setQuickCustomer({...quickCustomer,name:v})}/><Input label="電話番号" type="tel" value={quickCustomer.phone} set={(v)=>setQuickCustomer({...quickCustomer,phone:v})}/><Input label="LINE名（任意）" required={false} value={quickCustomer.line_name||''} set={(v)=>setQuickCustomer({...quickCustomer,line_name:v})}/></div><CustomerBrands value={quickCustomer} set={setQuickCustomer}/><label>接客メモ<textarea rows="2" value={quickCustomer.notes} onChange={(e)=>setQuickCustomer({...quickCustomer,notes:e.target.value})}/></label><label>注意事項<textarea rows="2" value={quickCustomer.caution} onChange={(e)=>setQuickCustomer({...quickCustomer,caution:e.target.value})}/></label><button className="admin-primary" type="button" disabled={saving} onClick={saveQuickCustomer}>顧客を登録して予約に選択</button></div>}
-      {brand==='marron'?<MarronBookingFields booking={booking} setBooking={setBooking} customers={brandCustomers} stores={stores} therapists={therapists} labels={labels}/>:<>
+      <div className="booking-customer-search">
+        <label>顧客検索<input type="search" placeholder="名前・電話番号・LINE名で検索" value={bookingCustomerSearch} onChange={e=>setBookingCustomerSearch(e.target.value)} autoComplete="off"/></label>
+        <div className="admin-row-actions"><button type="button" onClick={()=>setBookingCustomerSearch('')} disabled={!bookingCustomerSearch}>検索をクリア</button><span role="status">{bookingCustomerMatches.length}件の候補</span></div>
+        {bookingCustomerSearch&&!bookingCustomerMatches.length&&<p>一致する顧客がいません。検索条件を変えるか、新規顧客を登録してください。</p>}
+        {selectedBookingCustomer&&<p>選択中：{selectedBookingCustomer.name}（{selectedBookingCustomer.phone}）</p>}
+      </div>
+      {brand==='marron'?<MarronBookingFields booking={booking} setBooking={setBooking} customers={bookingCustomerOptions} stores={stores} therapists={therapists} labels={labels}/>:<>
       <div className="admin-grid admin-grid-3">
-      <Select label="顧客" value={booking.customer_id} set={(v)=>setBooking({...booking,customer_id:v})} options={brandCustomers.map((c)=>[c.id,`${c.name}（${c.phone}）${c.is_blocked?' ⚠':''}`])} />
+      <Select label="顧客" value={booking.customer_id} set={(v)=>setBooking({...booking,customer_id:v})} options={bookingCustomerOptions.map((c)=>[c.id,`${c.name}（${c.phone}）${c.is_blocked?' ⚠':''}`])} />
       <Select label="店舗" value={booking.store_id} set={(v)=>setBooking({...booking,store_id:v})} options={stores.map((s)=>[s.id,s.name])} />
       <Select label="ルーム" value={booking.room_number} set={(v)=>setBooking({...booking,room_number:v})} options={[[1,'ルーム1'],[2,'ルーム2']]} />
       <Select label="女の子" value={booking.therapist_id} set={(v)=>setBooking({...booking,therapist_id:v})} options={therapists.map((t)=>[t.id,t.name])} />
