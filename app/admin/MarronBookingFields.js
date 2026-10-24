@@ -2,7 +2,7 @@
 import pricing from '../../lib/marronPricing.cjs';
 const {COURSES,NOMINATIONS}=pricing;
 const START_TIMES=Array.from({length:96},(_,i)=>{const time=`${String(Math.floor(i/4)).padStart(2,'0')}:${String(i%4*15).padStart(2,'0')}`;return [time,time]});
-const OPTION_FEES=Array.from({length:101},(_,i)=>[i*500,`${(i*500).toLocaleString('ja-JP')}円`]);
+const OPTION_FEES=Array.from({length:31},(_,i)=>[i*500,`${(i*500).toLocaleString('ja-JP')}円`]);
 function preserveCurrent(options,value,label){return value!==''&&value!=null&&!options.some(([v])=>String(v)===String(value))?[[value,`${label}（保存済み）`],...options]:options;}
 export default function MarronBookingFields({ booking, setBooking, customers, stores, therapists, labels }) {
  const set=(key,value)=>setBooking({...booking,[key]:value});
