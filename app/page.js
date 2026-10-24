@@ -29,8 +29,8 @@ export default function Home() {
   useEffect(() => {
     // Supabaseから店舗・プロフィール・出勤情報を取得
     Promise.all([
-      supabase.from('resort_stores').select('*').eq('is_active', true).order('display_order'),
-      supabase.from('resort_therapists').select('*, resort_therapist_stores(store_id)').eq('is_published', true).order('display_order').order('name'),
+      supabase.from('resort_stores').select('*').eq('is_active', true).eq('brand_code', 'resort-style').order('display_order'),
+      supabase.from('resort_therapists').select('*, resort_therapist_stores(store_id)').contains('brand_codes', ['resort-style']).eq('is_published', true).order('display_order').order('name'),
       supabase.from('resort_schedules').select('*').eq('is_published', true).gte('work_date', new Date().toISOString().slice(0, 10)).order('work_date').order('start_time'),
     ]).then(([storeResult, therapistResult, scheduleResult]) => {
       if (storeResult.error) throw storeResult.error;
@@ -43,7 +43,7 @@ export default function Home() {
         ...item,
         store_ids: (item.resort_therapist_stores || []).map((relation) => relation.store_id),
       })));
-      setScheduleData(scheduleResult.data || []);
+      setScheduleData((scheduleResult.data || []).filter(row => storeRows.some(store => store.id === row.store_id)));
     }).catch(err => console.error('Supabase読み込みエラー:', err)).finally(() => setDataLoading(false));
 
     // メインスライダー
@@ -486,3 +486,4 @@ return (
     </>
   );
 }
+
