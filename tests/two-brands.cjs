@@ -16,7 +16,8 @@ const text=n=>typeof n==='string'?n:Array.isArray(n)?n.map(text).join(''):n&&typ
 const flush=()=>new Promise(r=>setImmediate(r));
 for(const brand of ['marron','resort-style'])test(`${brand}: customer flags and bookings are scoped`,async()=>{
  const m=mount(brand);await flush();let tree=m.render();const buttons=all(tree,n=>n.type==='button');buttons.find(n=>text(n)==='顧客管理').props.onClick();tree=m.render();const shown=text(tree);assert.ok(shown.includes('Both'));assert.ok(shown.includes(brand==='marron'?'MarroN only':'Resort only'));assert.ok(!shown.includes(brand==='marron'?'Resort only':'MarroN only'));
- await all(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});assert.equal(m.writes[0].payload.uses_marron,brand==='marron');assert.equal(m.writes[0].payload.uses_resort_style,brand==='resort-style');
+ for(const [label,value]of [['名前','Test'],['電話番号','09900000003']]){const node=all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0];all(node,n=>n.type==='input')[0].props.onChange({target:{value}});}
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});assert.equal(m.writes[0].payload.uses_marron,brand==='marron');assert.equal(m.writes[0].payload.uses_resort_style,brand==='resort-style');
  const checks=all(tree,n=>n.type==='input'&&n.props.type==='checkbox');assert.equal(checks[1].props.checked,brand==='marron');assert.equal(checks[2].props.checked,brand==='resort-style');
  checks[brand==='marron'?2:1].props.onChange({target:{checked:true}});tree=m.render();assert.equal(all(tree,n=>n.type==='input'&&n.props.type==='checkbox').filter(n=>n.props.checked).length,2);
  all(tree,n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();tree=m.render();const options=all(tree,n=>n.type==='option');assert.ok(options.some(n=>text(n).includes('Both')));assert.ok(!options.some(n=>text(n).includes(brand==='marron'?'Resort only':'MarroN only')));
@@ -34,3 +35,12 @@ test('MarroN field order and saved automatic totals match the requested form',as
 });
 
 for(const [brand,profit,expenses]of [['marron','¥300','¥100'],['resort-style','¥50','¥30']])test(`${brand}: profit subtracts only the selected month and store expenses`,async()=>{const m=mount(brand);await flush();const month=all(m.render(),n=>n.type==='input'&&n.props.type==='month')[0];month.props.onChange({target:{value:'2026-10'}});const cards=all(m.render(),n=>n.type==='article');assert.equal(text(cards.find(n=>text(n).startsWith('利益'))),`利益${profit}`);assert.equal(text(cards.find(n=>text(n).startsWith('経費合計'))),`経費合計${expenses}`);});
+
+test('customer registration requires name/phone but permits empty LINE name',async()=>{
+ const m=mount('marron');await flush();all(m.render(),n=>n.type==='button').find(n=>text(n)==='顧客管理').props.onClick();
+ function field(label){const l=all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0];return all(l,n=>n.type==='input')[0];}
+ assert.equal(field('名前').props.required,true);assert.equal(field('電話番号').props.required,true);assert.equal(field('LINE名（任意）').props.required,false);
+ field('名前').props.onChange({target:{value:'Test customer'}});field('電話番号').props.onChange({target:{value:'09900000003'}});
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});
+ const payload=m.writes.find(w=>w.table==='resort_customers').payload;assert.equal(payload.line_name,null);assert.equal(payload.name,'Test customer');assert.equal(payload.uses_marron,true);
+});
