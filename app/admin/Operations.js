@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import MarronBookingFields from './MarronBookingFields';
+import ExpensesPanel from './ExpensesPanel';
 import pricing from '../../lib/marronPricing.cjs';
 const { calculateMarron } = pricing;
 
@@ -26,6 +27,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [month, setMonth] = useState(jpDate().slice(0, 7));
   const [customers, setCustomers] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [expenses,setExpenses]=useState([]),[expensesReady,setExpensesReady]=useState(false);
   const newCustomer = () => ({ ...blankCustomer, [brand === 'marron' ? 'uses_marron' : 'uses_resort_style']: true });
   const [customer, setCustomer] = useState(newCustomer);
   const newBooking=()=>({...blankBooking,...(brand==='marron'?{course_name:'',nomination_code:'なし',extension_minutes:0,option_fee:0,price_adjustment:0,payout_adjustment:0}: {})});
@@ -36,10 +38,12 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const [c, b] = await Promise.all([
+    const [c, b, expensesResult] = await Promise.all([
       supabase.from('resort_customers').select('*').order('created_at', { ascending: false }),
       supabase.from('resort_bookings').select('*, resort_stores(name), resort_therapists(name), resort_customers(name, phone)').in('store_id', stores.map(s => s.id)).order('booking_date', { ascending: false }).order('start_time', { ascending: false }),
+      supabase.from('resort_expenses').select('*').in('store_id',stores.map(s=>s.id)).eq('is_archived',false).order('created_at',{ascending:false}),
     ]);
+    if(expensesResult.error){setExpensesReady(false);notify('経費を読み込めませんでした。利益は未確認です。');}else{setExpenses(expensesResult.data||[]);setExpensesReady(true);}
     if (c.error || b.error) return notify(`データを読み込めませんでした：${(c.error || b.error).message}`);
     setCustomers(c.data || []); setBookings(b.data || []);
   }, [notify, stores]);
@@ -49,6 +53,8 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const completed = monthRows.filter((b) => b.status === 'completed');
   const monthSales = completed.reduce((s, b) => s + b.total_amount, 0);
   const monthPayout = completed.reduce((s, b) => s + b.therapist_payout, 0);
+  const monthExpenses=expenses.filter(e=>e.expense_month===month&&!e.is_archived);
+  const expenseTotal=monthExpenses.reduce((sum,e)=>sum+Number(e.amount),0);
   const metrics = {
     today: bookings.filter((b) => b.booking_date === jpDate() && b.status === 'completed').reduce((s, b) => s + b.total_amount, 0),
     unpaid: monthRows.filter((b) => b.payment_method === 'unpaid' && !['cancelled', 'no_show'].includes(b.status)).length,
@@ -58,7 +64,8 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     const rows = completed.filter((b) => b.store_id === s.id);
     const sales = rows.reduce((n, b) => n + b.total_amount, 0);
     const payout = rows.reduce((n, b) => n + b.therapist_payout, 0);
-    return { ...s, count: rows.length, sales, payout };
+    const cost=monthExpenses.filter(e=>e.store_id===s.id).reduce((sum,e)=>sum+Number(e.amount),0);
+    return { ...s, count: rows.length, sales, payout,cost };
   });
   const activity = therapists.map((t) => {
     const rows = completed.filter((b) => b.therapist_id === t.id);
@@ -154,8 +161,8 @@ export default function Operations({ stores, therapists, schedules, notify, bran
 
   return <section>
     <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
-    {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
-    {view === 'dashboard' && <><div className="admin-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /></div><Table head={['店舗','会計件数','売上','バック','店舗実質売上']} rows={storeRows.map((s) => [s.name,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout)])} /></>}
+    {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
+    {view === 'dashboard' && <><div className="admin-metrics admin-finance-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','会計件数','売上','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>利益＝対象月の店舗実質売上−対象月の経費</p><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></>}
     {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{booking.id ? '予約・会計を編集' : '予約を登録'}</h2>{booking.id && <button type="button" onClick={() => setBooking(newBooking())}>新規登録に戻る</button>}</div>
       {!booking.id && <div style={{marginBottom:'18px'}}><button type="button" onClick={()=>setQuickCustomerOpen((v)=>!v)}>{quickCustomerOpen ? '新規顧客登録を閉じる' : '＋ 新規顧客登録'}</button></div>}
       {quickCustomerOpen && !booking.id && <div className="admin-panel" style={{marginBottom:'22px',padding:'18px'}}><div className="admin-panel-title"><h3>新規顧客を登録</h3></div><div className="admin-grid"><Input label="名前" value={quickCustomer.name} set={(v)=>setQuickCustomer({...quickCustomer,name:v})}/><Input label="電話番号" type="tel" value={quickCustomer.phone} set={(v)=>setQuickCustomer({...quickCustomer,phone:v})}/><Input label="LINE名" value={quickCustomer.line_name||''} set={(v)=>setQuickCustomer({...quickCustomer,line_name:v})}/></div><CustomerBrands value={quickCustomer} set={setQuickCustomer}/><label>接客メモ<textarea rows="2" value={quickCustomer.notes} onChange={(e)=>setQuickCustomer({...quickCustomer,notes:e.target.value})}/></label><label>注意事項<textarea rows="2" value={quickCustomer.caution} onChange={(e)=>setQuickCustomer({...quickCustomer,caution:e.target.value})}/></label><button className="admin-primary" type="button" disabled={saving} onClick={saveQuickCustomer}>顧客を登録して予約に選択</button></div>}

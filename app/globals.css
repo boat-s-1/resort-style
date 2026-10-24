@@ -528,3 +528,7 @@ background:#1185fe;
 .marron-totals span,.marron-totals strong { display:block; }
 .marron-totals strong { color:#087181; font-size:22px; margin-top:7px; overflow-wrap:anywhere; }
 @media(max-width:640px){ .admin-grid.marron-booking-grid {grid-template-columns:1fr;} .marron-grid-spacer {display:none;} .marron-totals {gap:6px;} .marron-totals article {padding:10px 6px;} .marron-totals strong {font-size:17px;} .marron-totals span {font-size:12px;} }
+
+.admin-finance-metrics {grid-template-columns:repeat(4,minmax(0,1fr));}
+.admin-expenses {margin-top:20px;}
+@media(max-width:640px){.admin-finance-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}
