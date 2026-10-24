@@ -1,16 +1,11 @@
-import AdminLoginEmailFix from './AdminLoginEmailFix';
 
 export default function AdminLayout({ children }) {
   return (
     <>
-      <AdminLoginEmailFix />
       <style>{`
         .admin-login {
           display: grid;
           gap: 16px;
-        }
-        .admin-login label:first-of-type {
-          display: none !important;
         }
         .admin-login label {
           display: grid;
@@ -41,3 +36,4 @@ export default function AdminLayout({ children }) {
     </>
   );
 }
+
