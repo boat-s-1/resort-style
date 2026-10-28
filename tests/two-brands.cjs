@@ -53,3 +53,13 @@ test('booking customer search keeps current selection and excludes other brand c
  search().props.onChange({target:{value:'Resort only'}});assert.ok(text(m.render()).includes('一致する顧客がいません'));assert.ok(all(m.render(),n=>n.type==='option').some(n=>n.props.value==='a'));
  all(m.render(),n=>n.type==='button'&&n.props.children==='検索をクリア')[0].props.onClick();assert.equal(search().props.value,'');
 });
+
+test('Resort courses set the requested time and price independently of MarroN',async()=>{
+ const m=mount('resort-style');await flush();all(m.render(),n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();
+ const field=label=>all(all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0],n=>n.type==='select'||n.type==='input')[0];
+ const courses=[['ノーマルコース 60分',60,10000],['ノーマルコース 90分',90,14000],['ノーマルコース 120分',120,18000],['とろふわコース 90分',90,18000],['とろふわコース 120分',120,23000],['マイクロコース 90分',90,22000],['マイクロコース 120分',120,27000]];
+ for(const [name,time,price] of courses){field('コース名').props.onChange({target:{value:name}});assert.equal(field('施術時間（分）').props.value,time);assert.equal(field('コース料金').props.value,price);}
+ assert.equal(all(field('コース名'),n=>n.type==='option'&&n.props.value).length,7);
+ field('顧客').props.onChange({target:{value:'b'}});field('店舗').props.onChange({target:{value:'1'}});field('女の子').props.onChange({target:{value:'cast'}});
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;assert.equal(p.course_name,'マイクロコース 120分');assert.equal(p.duration_minutes,120);assert.equal(p.base_price,27000);assert.equal(p.pricing_version,undefined);
+});
