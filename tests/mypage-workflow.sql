@@ -1,0 +1,57 @@
+-- All synthetic fixtures and Vault entries are rolled back. Never use real credentials here.
+begin;
+do $$
+declare a uuid; b uuid; c uuid; aid uuid; rid uuid; sid smallint; msid smallint; tok text:=encode(extensions.gen_random_bytes(32),'hex'); tok2 text:=encode(extensions.gen_random_bytes(32),'hex'); r jsonb; day date:=(now() at time zone 'Asia/Tokyo')::date+10; admin_id uuid;
+begin
+ select user_id into admin_id from public.resort_admins limit 1;
+ select id into sid from public.resort_stores where brand_code='resort-style' order by id limit 1;
+ select id into msid from public.resort_stores where brand_code='marron' limit 1;
+ insert into public.resort_therapists(name,slug,is_published) values('Synthetic workflow A','test-workflow-'||gen_random_uuid(),false) returning id into a;
+ insert into public.resort_therapists(name,slug,is_published,brand_codes) values('Synthetic workflow B','test-workflow-'||gen_random_uuid(),false,array['marron']) returning id into b;
+ insert into public.resort_therapist_accounts(therapist_id,login_id,password_hash) values(a,'test-'||a,extensions.crypt('synthetic-only',extensions.gen_salt('bf'))),(b,'test-'||b,extensions.crypt('synthetic-only',extensions.gen_salt('bf')));
+ insert into public.resort_therapist_sessions(token_hash,therapist_id,expires_at) values(encode(extensions.digest(tok,'sha256'),'hex'),a,now()+interval '1 hour'),(encode(extensions.digest(tok2,'sha256'),'hex'),b,now()+interval '1 hour');
+ insert into public.resort_customers(name,phone) values('Synthetic workflow customer','099'||floor(random()*100000000)::text) returning id into c;
+ insert into public.resort_bookings(store_id,therapist_id,customer_id,booking_date,start_time,duration_minutes,course_name,therapist_payout,total_amount,status,created_by) values(sid,a,c,(now() at time zone 'Asia/Tokyo')::date,'10:00',60,'test',6000,10000,'completed',admin_id),(sid,a,c,(now() at time zone 'Asia/Tokyo')::date,'12:00',60,'test',3000,4000,'reserved',admin_id),(sid,a,c,(now() at time zone 'Asia/Tokyo')::date,'14:00',60,'test',9999,10000,'cancelled',admin_id);
+ execute 'set local role anon';
+ begin perform public.resort_mypage_action('overview','invalid','{}');raise exception 'invalid token accepted';exception when invalid_authorization_specification then null;end;
+ begin perform public.resort_mypage_action('admin_requests','',jsonb_build_object('brand','resort-style'));raise exception 'anon admin accepted';exception when insufficient_privilege then null;end;
+ begin perform 1 from resort_private.issued_accounts;raise exception 'direct secrets accessible';exception when insufficient_privilege then null;end;
+ r:=public.resort_mypage_action('overview',tok,'{}');
+ if (r#>>'{today_salary,confirmed}')::int<>6000 or (r#>>'{today_salary,expected}')::int<>3000 then raise exception 'salary mismatch';end if;
+ begin perform public.resort_mypage_action('request_shift',tok,jsonb_build_object('store_id',msid,'work_date',day,'start_time','10:00','end_time','18:00'));raise exception 'cross brand request accepted';exception when insufficient_privilege then null;end;
+ perform public.resort_mypage_action('request_shift',tok,jsonb_build_object('store_id',sid,'work_date',day,'start_time','10:00','end_time','18:00','note','private note'));
+ r:=public.resort_mypage_action('overview',tok,'{}');rid:=(r#>>'{requests,0,id}')::uuid;
+ if r#>>'{requests,0,status}'<>'pending' or jsonb_array_length(r->'next_schedules')<>0 then raise exception 'pending leaked to schedules';end if;
+ execute 'reset role';
+ if exists(select 1 from public.resort_schedules where therapist_id=a) then raise exception 'pending published';end if;
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ execute 'set local role authenticated';
+ begin perform public.resort_mypage_action('admin_approve','',jsonb_build_object('brand','marron','id',rid));raise exception 'wrong brand approved';exception when raise_exception then if sqlerrm='wrong brand approved' then raise;end if;end;
+ perform public.resort_mypage_action('admin_approve','',jsonb_build_object('brand','resort-style','id',rid));
+ perform public.resort_mypage_action('admin_save_account','',jsonb_build_object('brand','resort-style','therapist_id',a,'platform','x','login_id','synthetic-id','password','synthetic-secret'));
+ r:=public.resort_mypage_action('admin_accounts','',jsonb_build_object('brand','resort-style','therapist_id',a));aid:=(r#>>'{0,id}')::uuid;
+ if r::text like '%synthetic-secret%' or r::text like '%secret_id%' then raise exception 'list leaked secret';end if;
+ perform public.resort_mypage_action('admin_save_account','',jsonb_build_object('brand','resort-style','therapist_id',a,'platform','x','login_id','synthetic-id-2','password',''));
+ execute 'reset role';
+ if not exists(select 1 from public.resort_schedules where therapist_id=a and work_date=day and note='' and is_published) then raise exception 'approval failed or private note published';end if;
+ execute 'set local role anon';
+ r:=public.resort_mypage_action('overview',tok,'{}');
+ if r#>>'{next_schedules,0,work_date}'<>day::text then raise exception 'next schedule mismatch';end if;
+ if r::text like '%synthetic-secret%' then raise exception 'overview leaked password';end if;
+ r:=public.resort_mypage_action('reveal_account',tok,jsonb_build_object('id',aid));if r->>'password'<>'synthetic-secret' then raise exception 'reveal mismatch';end if;
+ begin perform public.resort_mypage_action('reveal_account',tok2,jsonb_build_object('id',aid));raise exception 'other therapist revealed';exception when insufficient_privilege then null;end;
+ perform public.resort_mypage_action('request_shift',tok,jsonb_build_object('store_id',sid,'work_date',day+1,'start_time','23:00','end_time','03:00'));
+ r:=public.resort_mypage_action('overview',tok,'{}');rid:=(r#>>'{requests,0,id}')::uuid;
+ -- Locate by date because transaction timestamps are equal.
+ select (x->>'id')::uuid into rid from jsonb_array_elements(r->'requests') x where x->>'work_date'=(day+1)::text;
+ perform public.resort_mypage_action('cancel_request',tok,jsonb_build_object('id',rid));
+ perform public.resort_mypage_action('logout',tok,'{}');
+ begin perform public.resort_mypage_action('overview',tok,'{}');raise exception 'logged out token accepted';exception when invalid_authorization_specification then null;end;
+ execute 'reset role';
+ update public.resort_therapist_accounts set is_active=false where therapist_id=b;
+ execute 'set local role anon';
+ begin perform public.resort_mypage_action('overview',tok2,'{}');raise exception 'disabled account accepted';exception when invalid_authorization_specification then null;end;
+ execute 'reset role';
+end $$;
+rollback;
+select 'workflow, salary, approval, ownership, encryption and logout checks passed' as result;

@@ -1,0 +1,10 @@
+# Therapist mypage workflow
+
+- `/mypage`: today's salary from saved completed bookings, with reserved-booking salary shown separately. Cancelled/no-show rows are excluded. Values are saved booking payouts; existing historical bookings are not repriced.
+- Next confirmed shifts are loaded independently of the monthly reporting selector. A missing next shift links to the request form.
+- Requests are private pending records. Admins review them under 出勤・店舗管理, scoped to the selected brand. Approval atomically inserts a published schedule; an existing therapist/day schedule is never overwritten. Rejection and therapist cancellation leave no public schedule. Overnight end times are supported. Request notes remain private after approval.
+- `/admin/mypage-accounts?brand=...`: select a therapist and enter issued X, Instagram or リラクシー credentials. This records credentials already issued by the store; it does not create accounts on external services. Each brand/platform has one credential per therapist. Blank password on update preserves it.
+- Secrets live in Supabase Vault; list/overview responses contain IDs but no passwords or Vault identifiers. Reveal requires an active therapist account and an unexpired hashed session token bound to the credential owner and current brand membership. UI hides secrets after 30 seconds, navigation, logout or hidden document.
+- Private tables have RLS enabled and no direct anonymous/authenticated table grants. Public RPC is SECURITY INVOKER; the private implementation performs token/admin authorization for every operation. Administrative actions require `resort_admins` membership. No notifications are sent.
+- SQL: `db/mypage-workflow.sql` is the consolidated schema/RPC definition. Remote migration history includes the initial migration and a follow-up keeping request notes private.
+- Verification: `node --test tests/*.cjs`, `npm run build`, and rollback-only synthetic integration assertions in `tests/mypage-workflow.sql`. No real credentials or customer fixtures are used by the integration test. Security advisors report the intentional private-table default-deny state and pre-existing legacy RPC/auth warnings.
