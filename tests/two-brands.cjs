@@ -63,3 +63,20 @@ test('Resort courses set the requested time and price independently of MarroN',a
  field('顧客').props.onChange({target:{value:'b'}});field('店舗').props.onChange({target:{value:'1'}});field('女の子').props.onChange({target:{value:'cast'}});
  await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;assert.equal(p.course_name,'マイクロコース 120分');assert.equal(p.duration_minutes,120);assert.equal(p.base_price,27000);assert.equal(p.pricing_version,undefined);
 });
+
+test('Resort quarter hours, nomination, extension and signed adjustment save correct totals',async()=>{
+ const m=mount('resort-style');await flush();all(m.render(),n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();
+ const field=label=>all(all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0],n=>n.type==='select'||n.type==='input')[0];
+ const set=(label,value)=>field(label).props.onChange({target:{value}});
+ assert.equal(all(field('開始時間'),n=>n.type==='option'&&n.props.value).length,96);
+ assert.equal(all(field('開始時間'),n=>n.type==='option'&&n.props.value).at(-1).props.value,'23:45');
+ assert.deepEqual(all(field('指名料'),n=>n.type==='option'&&n.props.value).map(text),['F','P500','P1000','R1000','R2000']);
+ set('コース名','ノーマルコース 60分');set('延長料金','8000');assert.equal(field('施術時間（分）').props.value,100);
+ set('延長料金','4000');assert.equal(field('施術時間（分）').props.value,80);
+ set('コース名','ノーマルコース 90分');assert.equal(field('施術時間（分）').props.value,110);
+ set('指名料','R2000');set('割引・割増','5000');assert.ok(text(m.render()).includes('¥25,000'));
+ set('割引・割増','-5000');assert.ok(text(m.render()).includes('¥15,000'));
+ set('顧客','b');set('店舗','1');set('女の子','cast');set('開始時間','23:45');
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;
+ assert.equal(p.total_amount,15000);assert.equal(p.discount,5000);assert.equal(p.price_adjustment,0);assert.equal(p.nomination_fee,2000);assert.equal(p.nomination_code,'R2000');assert.equal(p.extension_minutes,20);assert.equal(p.duration_minutes,110);assert.equal(p.start_time,'23:45');
+});
