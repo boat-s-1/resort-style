@@ -532,3 +532,11 @@ background:#1185fe;
 .admin-finance-metrics {grid-template-columns:repeat(4,minmax(0,1fr));}
 .admin-expenses {margin-top:20px;}
 @media(max-width:640px){.admin-finance-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+/* Therapist sign-in: stack fields and keep the card inside narrow screens. */
+.mypage-login { box-sizing: border-box; min-width: 0; }
+.mypage-login h1 { margin: 0; font-size: clamp(23px, 5vw, 30px); line-height: 1.4; overflow-wrap: anywhere; }
+.mypage-login label, .mypage-login input { min-width: 0; box-sizing: border-box; }
+.mypage-login input { font-size: 16px; }
+.mypage-login > a { display: block; text-align: center; padding: 6px 0; color: #087181; }
+@media (max-width: 480px) { .mypage-login { padding: 24px 20px; } }
