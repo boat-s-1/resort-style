@@ -80,3 +80,18 @@ test('Resort quarter hours, nomination, extension and signed adjustment save cor
  await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;
  assert.equal(p.total_amount,15000);assert.equal(p.discount,5000);assert.equal(p.price_adjustment,0);assert.equal(p.nomination_fee,2000);assert.equal(p.nomination_code,'R2000');assert.equal(p.extension_minutes,20);assert.equal(p.duration_minutes,110);assert.equal(p.start_time,'23:45');
 });
+
+test('Resort salary follows course, extension and nomination and is saved with sales',async()=>{
+ const m=mount('resort-style');await flush();all(m.render(),n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();
+ const field=label=>all(all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0],n=>n.type==='select'||n.type==='input')[0];
+ const set=(label,value)=>field(label).props.onChange({target:{value}});
+ for(const [name,pay] of [['ノーマルコース 60分',6000],['ノーマルコース 90分',8000],['ノーマルコース 120分',11000],['とろふわコース 90分',11000],['とろふわコース 120分',14000],['マイクロコース 90分',15000],['マイクロコース 120分',18000]]){
+ set('コース名',name);set('延長料金','0');assert.equal(field('女子給料（自動計算）').props.value,pay);assert.equal(field('女子給料（自動計算）').props.readOnly,true);
+ for(const [fee,back]of [[4000,3000],[8000,6000],[12000,9000]]){set('延長料金',String(fee));assert.equal(field('女子給料（自動計算）').props.value,pay+back);}
+ }
+ for(const [code,back]of [['なし',0],['P500',0],['P1000',0],['R1000',1000],['R2000',2000]]){set('指名料',code);assert.equal(field('女子給料（自動計算）').props.value,27000+back);}
+ set('割引・割増','-500');assert.equal(field('女子給料（自動計算）').props.value,29000);
+ assert.ok(text(m.render()).includes('売上¥40,500'));assert.ok(text(m.render()).includes('店落ち¥11,500'));
+ set('顧客','b');set('店舗','1');set('女の子','cast');set('開始時間','12:00');
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;assert.equal(p.total_amount,40500);assert.equal(p.therapist_payout,29000);
+});
