@@ -196,6 +196,7 @@ return (
             <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2' }}>
               <li>指名料：別途</li>
               <li>延長：20分 4,000円</li>
+              {selectedStore?.code === 'toyohashi' && <li>ルーム料金：平日500円／土日祝1,000円（前日23:00〜）</li>}
             </ul>
           </div>
        
