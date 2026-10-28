@@ -22,6 +22,11 @@ const resortCourses = [
   ['マイクロコース 90分',90,22000],
   ['マイクロコース 120分',120,27000],
 ];
+const resortNominations = [['なし','F',0],['P500','P500',500],['P1000','P1000',1000],['R1000','R1000',1000],['R2000','R2000',2000]];
+const quarterHours=Array.from({length:96},(_,i)=>{const t=`${String(Math.floor(i/4)).padStart(2,'0')}:${String(i%4*15).padStart(2,'0')}`;return [t,t]});
+const resortExtensions=[[0,'なし'],[4000,'20分 4,000円'],[8000,'40分 8,000円'],[12000,'60分 12,000円']];
+const resortAdjustments=Array.from({length:21},(_,i)=>{const n=(i-10)*500;return [n,n===0?'なし':`${n<0?'割引':'割増'} ${yen(Math.abs(n))}`]});
+function savedOption(options,value){return options.some(([v])=>String(v)===String(value))?options:[[value,`${value}（保存済み）`],...options]}
 const labels = { reserved: '予約', completed: '会計済み', cancelled: 'キャンセル', no_show: '無断キャンセル' };
 const csv = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
 function currentJpMinutes() {
@@ -41,7 +46,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [expenses,setExpenses]=useState([]),[expensesReady,setExpensesReady]=useState(false);
   const newCustomer = () => ({ ...blankCustomer, [brand === 'marron' ? 'uses_marron' : 'uses_resort_style']: true });
   const [customer, setCustomer] = useState(newCustomer);
-  const newBooking=()=>({...blankBooking,...(brand==='marron'?{course_name:'',nomination_code:'なし',extension_minutes:0,option_fee:0,price_adjustment:0,payout_adjustment:0}: {course_name:'',duration_minutes:0})});
+  const newBooking=()=>({...blankBooking,...(brand==='marron'?{course_name:'',nomination_code:'なし',extension_minutes:0,option_fee:0,price_adjustment:0,payout_adjustment:0}: {course_name:'',duration_minutes:0,nomination_code:'なし',extension_minutes:0,price_adjustment:0})});
   const [booking, setBooking] = useState(newBooking);
   const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
   const [quickCustomer, setQuickCustomer] = useState(newCustomer);
@@ -99,7 +104,9 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   });
   let marronCalculation=null, pricingError='';
   if(brand==='marron'&&booking.course_name){try{marronCalculation=calculateMarron(booking)}catch(error){pricingError=error.message}}
-  const total = Math.max(0, Number(booking.base_price || 0) + Number(booking.nomination_fee || 0) + Number(booking.extension_fee || 0) - Number(booking.discount || 0));
+  const total = Math.max(0, Number(booking.base_price || 0) + Number(booking.nomination_fee || 0) + Number(booking.extension_fee || 0) + (brand==='marron'?0:Number(booking.price_adjustment||0)) - Number(booking.discount || 0));
+  const resortNominationValue=resortNominations.some(([code,,fee])=>code===(booking.nomination_code||'なし')&&fee===Number(booking.nomination_fee||0))?(booking.nomination_code||'なし'):'saved';
+  const resortNominationOptions=[...(resortNominationValue==='saved'?[['saved',`${yen(booking.nomination_fee)}（保存済み）`]]:[]),...resortNominations.map(([code,label])=>[code,label])];
   const nowMinutes = currentJpMinutes();
   const roomRows = stores.flatMap((store) => [1, 2].map((roomNumber) => {
     const rows = bookings.filter((b) => b.store_id === store.id && b.room_number === roomNumber && b.booking_date === jpDate() && !['cancelled', 'no_show'].includes(b.status)).sort((a, b) => bookingStart(a) - bookingStart(b));
@@ -160,6 +167,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     setSaving(true);
     const payload = { store_id: Number(booking.store_id), room_number: Number(booking.room_number), therapist_id: booking.therapist_id, customer_id: booking.customer_id, booking_date: booking.booking_date, start_time: booking.start_time, duration_minutes: Number(booking.duration_minutes), course_name: booking.course_name, base_price: Number(booking.base_price || 0), nomination_fee: Number(booking.nomination_fee || 0), extension_fee: Number(booking.extension_fee || 0), discount: Number(booking.discount || 0), therapist_payout: Number(booking.therapist_payout || 0), payment_method: booking.payment_method, status: booking.status, is_first_visit: booking.is_first_visit, notes: booking.notes };
     if(brand==='marron') Object.assign(payload,computed,{nomination_code:booking.nomination_code,extension_minutes:Number(booking.extension_minutes),option_fee:Number(booking.option_fee||0),price_adjustment:Number(booking.price_adjustment||0),payout_adjustment:Number(booking.payout_adjustment||0),pricing_version:1});
+    if(brand!=='marron') Object.assign(payload,{total_amount:total,price_adjustment:Number(booking.price_adjustment||0),nomination_code:booking.nomination_code||'なし',extension_minutes:Number(booking.extension_minutes||0)});
     delete payload.store_amount;
     const q = booking.id ? supabase.from('resort_bookings').update(payload).eq('id', booking.id) : supabase.from('resort_bookings').insert(payload);
     const { error } = await q; notify(error ? `保存できませんでした：${error.message}` : '予約・会計情報を保存しました。');
@@ -200,8 +208,8 @@ export default function Operations({ stores, therapists, schedules, notify, bran
       <Select label="店舗" value={booking.store_id} set={(v)=>setBooking({...booking,store_id:v})} options={stores.map((s)=>[s.id,s.name])} />
       <Select label="ルーム" value={booking.room_number} set={(v)=>setBooking({...booking,room_number:v})} options={[[1,'ルーム1'],[2,'ルーム2']]} />
       <Select label="女の子" value={booking.therapist_id} set={(v)=>setBooking({...booking,therapist_id:v})} options={therapists.map((t)=>[t.id,t.name])} />
-      <Input label="日付" type="date" value={booking.booking_date} set={(v)=>setBooking({...booking,booking_date:v})} /><Input label="開始時間" type="time" value={booking.start_time} set={(v)=>setBooking({...booking,start_time:v})} /><Input label="施術時間（分）" type="number" value={booking.duration_minutes} set={(v)=>setBooking({...booking,duration_minutes:v})} />
-      <Select label="コース名" value={booking.course_name} set={(v)=>{const course=resortCourses.find(([name])=>name===v);setBooking({...booking,course_name:v,...(course?{duration_minutes:course[1],base_price:course[2]}:{})});}} options={[...(booking.course_name&&!resortCourses.some(([name])=>name===booking.course_name)?[[booking.course_name,`${booking.course_name}（保存済み）`]]:[]),...resortCourses.map(([name,,price])=>[name,`${name}（${yen(price)}）`])]} /><Input label="コース料金" type="number" value={booking.base_price} set={(v)=>setBooking({...booking,base_price:v})} /><Input label="指名料" type="number" value={booking.nomination_fee} set={(v)=>setBooking({...booking,nomination_fee:v})} /><Input label="延長料金" type="number" value={booking.extension_fee} set={(v)=>setBooking({...booking,extension_fee:v})} /><Input label="割引" type="number" value={booking.discount} set={(v)=>setBooking({...booking,discount:v})} /><Input label="女の子バック" type="number" value={booking.therapist_payout} set={(v)=>setBooking({...booking,therapist_payout:v})} />
+      <Input label="日付" type="date" value={booking.booking_date} set={(v)=>setBooking({...booking,booking_date:v})} /><Select label="開始時間" value={booking.start_time} set={(v)=>setBooking({...booking,start_time:v})} options={savedOption(quarterHours,booking.start_time).filter(([v])=>v!=='')} /><Input label="施術時間（分）" type="number" value={booking.duration_minutes} set={(v)=>setBooking({...booking,duration_minutes:v})} />
+      <Select label="コース名" value={booking.course_name} set={(v)=>{const course=resortCourses.find(([name])=>name===v);setBooking({...booking,course_name:v,...(course?{duration_minutes:course[1]+Number(booking.extension_minutes||0),base_price:course[2]}:{})});}} options={[...(booking.course_name&&!resortCourses.some(([name])=>name===booking.course_name)?[[booking.course_name,`${booking.course_name}（保存済み）`]]:[]),...resortCourses.map(([name,,price])=>[name,`${name}（${yen(price)}）`])]} /><Input label="コース料金" type="number" value={booking.base_price} set={(v)=>setBooking({...booking,base_price:v})} /><Select label="指名料" value={resortNominationValue} set={(v)=>{const choice=resortNominations.find(([code])=>code===v);if(choice)setBooking({...booking,nomination_code:v,nomination_fee:choice[2]});}} options={resortNominationOptions} /><Select label="延長料金" value={booking.extension_fee} set={(v)=>{const minutes=Number(v)/4000*20;setBooking({...booking,extension_fee:Number(v),extension_minutes:minutes,duration_minutes:Number(booking.duration_minutes)-Number(booking.extension_minutes||0)+minutes});}} options={savedOption(resortExtensions,booking.extension_fee)} /><Select label="割引・割増" value={Number(booking.price_adjustment||0)-Number(booking.discount||0)} set={(v)=>setBooking({...booking,price_adjustment:Math.max(0,Number(v)),discount:Math.max(0,-Number(v))})} options={savedOption(resortAdjustments,Number(booking.price_adjustment||0)-Number(booking.discount||0))} /><Input label="女の子バック" type="number" value={booking.therapist_payout} set={(v)=>setBooking({...booking,therapist_payout:v})} />
       <Select label="支払方法" value={booking.payment_method} set={(v)=>setBooking({...booking,payment_method:v})} options={[['unpaid','未会計'],['cash','現金'],['card','カード'],['paypay','PayPay'],['other','その他']]} />
       <Select label="状態" value={booking.status} set={(v)=>setBooking({...booking,status:v})} options={Object.entries(labels)} />
       <label className="admin-switch"><input type="checkbox" checked={booking.is_first_visit} onChange={(e)=>setBooking({...booking,is_first_visit:e.target.checked})}/>初回来店</label>
