@@ -90,7 +90,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     const workMinutes = schedules.filter((s) => s.therapist_id === t.id && s.work_date.startsWith(month)).reduce((n, s) => {
       if (!s.start_time || !s.end_time) return n;
       const a = s.start_time.split(':').map(Number), z = s.end_time.split(':').map(Number);
-      return n + Math.max(0, z[0] * 60 + z[1] - a[0] * 60 - a[1]);
+      return n + ((z[0] * 60 + z[1] - a[0] * 60 - a[1] + 1440) % 1440);
     }, 0);
     return { ...t, count: rows.length, minutes, utilization: workMinutes ? Math.min(100, Math.round(minutes / workMinutes * 100)) : null, sales: rows.reduce((n, b) => n + b.total_amount, 0), payout: rows.reduce((n, b) => n + b.therapist_payout, 0), nomination: rows.filter((b) => b.nomination_fee > 0).length, repeat: rows.filter((b) => !b.is_first_visit).length };
   }).sort((a, b) => b.sales - a.sales);
