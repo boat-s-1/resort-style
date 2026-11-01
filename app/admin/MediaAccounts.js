@@ -10,8 +10,9 @@ export default function MediaAccounts({ brand }) {
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(''), [revealed, setRevealed] = useState({});
   const [revealing, setRevealing] = useState(null);
+  const [copying, setCopying] = useState(null);
   const generation = useRef(0), timer = useRef(null);
-  function hide() { generation.current++; setRevealed({}); setRevealing(null); clearTimeout(timer.current); }
+  function hide() { generation.current++; setRevealed({}); setRevealing(null); setCopying(null); clearTimeout(timer.current); }
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -53,6 +54,43 @@ export default function MediaAccounts({ brand }) {
     } catch { if (token === generation.current) setMessage('パスワードを表示できませんでした。再ログインしてお試しください。'); }
     finally { if (token === generation.current) setRevealing(null); }
   }
+  async function copy(row, isPassword) {
+    if (copying || busy || revealing) return;
+    if (!navigator.clipboard) { setMessage('このブラウザではコピーできません。表示した内容を選択してコピーしてください。'); return; }
+    const token = generation.current;
+    setCopying(row.id); setMessage('');
+    const value = async () => {
+      let text = row.login_id || '';
+      if (isPassword) {
+        if (Object.hasOwn(revealed, row.id)) text = revealed[row.id];
+        else {
+          const { data, error } = await supabase.rpc('resort_media_reveal', { p_brand: brand, p_id: row.id });
+          if (error) throw error;
+          text = data || '';
+        }
+      }
+      if (token !== generation.current || document.hidden) throw new Error('cancelled');
+      return text;
+    };
+    try {
+      // Start the clipboard write during the click, including Safari's async-value path.
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+        const pending = value().then(text => new Blob([text], { type: 'text/plain' }));
+        pending.catch(() => {});
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': pending })]);
+      } else {
+        await navigator.clipboard.writeText(await value());
+      }
+      if (token === generation.current) setMessage(isPassword ? 'パスワードをコピーしました。' : 'IDをコピーしました。');
+    } catch { if (token === generation.current) setMessage('コピーできませんでした。もう一度押すか、表示した内容を選択してコピーしてください。'); }
+    finally { if (token === generation.current) setCopying(null); }
+  }
+  function copyButton(row, isPassword) {
+    const label = `${row.name}の${isPassword ? 'パスワード' : 'ID'}をコピー`;
+    return <button type="button" title={label} aria-label={label} disabled={busy || Boolean(copying) || Boolean(revealing)} onClick={() => copy(row, isPassword)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',minWidth:36,minHeight:36,marginLeft:6,verticalAlign:'middle'}}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+    </button>;
+  }
   return <section aria-label="媒体一覧">
     <h2>{brand === 'marron' ? 'MarroN' : 'Resort-style'}の媒体一覧</h2>
     <form className="admin-panel admin-form" onSubmit={save} autoComplete="off">
@@ -68,9 +106,10 @@ export default function MediaAccounts({ brand }) {
       {form.id && <button type="button" disabled={busy} onClick={()=>{setForm(blank);hide();}}>編集をやめる</button>}
     </form>
     <p role="status">{message}</p>
-    <p>パスワードは「表示」を押した項目だけ表示し、30秒後に自動で隠します。</p>
+    <p>パスワードは「表示」を押した項目だけ表示し、30秒後に自動で隠します。コピーアイコンからは、表示せずにパスワードをコピーできます。</p>
     {loading ? <p role="status">読み込み中…</p> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{['媒体名','アドレス','ID','パスワード','操作'].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>
-      {rows.map(row=><tr key={row.id}><td>{row.name}</td><td>{safeUrl(row.url) ? <a href={safeUrl(row.url)} target="_blank" rel="noopener noreferrer">{row.url}</a> : '—'}</td><td>{row.login_id || '—'}</td><td>{row.has_password ? <><span>{Object.hasOwn(revealed,row.id) ? revealed[row.id] : '••••••••'}</span> <button type="button" disabled={Boolean(revealing)||busy} aria-label={`${row.name}のパスワードを${Object.hasOwn(revealed,row.id)?'隠す':'表示'}`} onClick={()=>reveal(row)}>{revealing===row.id?'確認中…':Object.hasOwn(revealed,row.id)?'隠す':'表示'}</button></> : '未登録'}</td><td><button disabled={busy} onClick={()=>{hide();setForm({...blank,...row,password:''});}}>編集</button></td></tr>)}
+      {rows.map(row=><tr key={row.id}><td>{row.name}</td><td>{safeUrl(row.url) ? <a href={safeUrl(row.url)} target="_blank" rel="noopener noreferrer">{row.url}</a> : '—'}</td><td><span>{row.login_id || '—'}</span>{row.login_id && copyButton(row,false)}</td><td>{row.has_password ? <><span>{Object.hasOwn(revealed,row.id) ? revealed[row.id] : '••••••••'}</span> <button type="button" disabled={Boolean(revealing)||Boolean(copying)||busy} aria-label={`${row.name}のパスワードを${Object.hasOwn(revealed,row.id)?'隠す':'表示'}`} onClick={()=>reveal(row)}>{revealing===row.id?'確認中…':Object.hasOwn(revealed,row.id)?'隠す':'表示'}</button>{copyButton(row,true)}</> : '未登録'}</td><td><button disabled={busy} onClick={()=>{hide();setForm({...blank,...row,password:''});}}>編集</button></td></tr>)}
     </tbody></table>{!rows.length && <p className="admin-empty">この店舗の媒体はまだ登録されていません。</p>}</div>}
   </section>;
 }
+
