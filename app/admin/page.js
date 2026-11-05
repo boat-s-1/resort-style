@@ -21,6 +21,64 @@ function ScheduleTimeSelect({ label, value, onChange }) {
   </label>;
 }
 
+const scheduleDateLabel = new Intl.DateTimeFormat('ja-JP', {
+  year: 'numeric', month: 'long', day: 'numeric', weekday: 'short', timeZone: 'Asia/Tokyo',
+});
+
+function RegisteredSchedules({ schedules, stores, saving, onEdit }) {
+  const [therapist, setTherapist] = useState('');
+  const [store, setStore] = useState('');
+  const [showPast, setShowPast] = useState(false);
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+  const names = new Map();
+  const days = new Map();
+
+  for (const row of schedules) {
+    if (row.resort_therapists?.name) names.set(row.therapist_id, row.resort_therapists.name);
+    if ((!showPast && row.work_date < today) ||
+        (therapist && row.therapist_id !== therapist) ||
+        (store && String(row.store_id) !== store)) continue;
+    if (!days.has(row.work_date)) days.set(row.work_date, []);
+    days.get(row.work_date).push(row);
+  }
+
+  return <section className="admin-panel">
+    <h2>登録済みの出勤</h2>
+    <div className="admin-toolbar">
+      <label>名前<select value={therapist} onChange={event => setTherapist(event.target.value)}>
+        <option value="">すべて</option>
+        {[...names].sort((a, b) => a[1].localeCompare(b[1], 'ja')).map(([id, name]) =>
+          <option key={id} value={id}>{name}</option>
+        )}
+      </select></label>
+      <label>店舗<select value={store} onChange={event => setStore(event.target.value)}>
+        <option value="">すべて</option>
+        {stores.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+      </select></label>
+      <label className="admin-switch"><input type="checkbox" checked={showPast}
+        onChange={event => setShowPast(event.target.checked)}/>過去の出勤も表示</label>
+    </div>
+    {!days.size && <p className="admin-empty">表示する出勤予定がありません。</p>}
+    {[...days].map(([date, rows]) => <section key={date}>
+      <h3 className="admin-section-heading">{scheduleDateLabel.format(new Date(date + 'T00:00:00Z'))}{date === today && '（今日）'}</h3>
+      <div className="admin-table-wrap"><table className="admin-table">
+        <thead><tr><th>名前</th><th>店舗</th><th>出勤時間</th><th>操作</th></tr></thead>
+        <tbody>{rows.map(row => {
+          const start = row.start_time?.slice(0, 5);
+          const end = row.end_time?.slice(0, 5);
+          const overnight = start && end && end < start;
+          return <tr key={row.id}>
+            <td>{row.resort_therapists?.name || '—'}</td>
+            <td>{row.resort_stores?.name || '—'}</td>
+            <td>{start || '—'}〜{overnight && '翌'}{end || '—'}</td>
+            <td><button type="button" disabled={saving} onClick={() => onEdit(row)}>編集</button></td>
+          </tr>;
+        })}</tbody>
+      </table></div>
+    </section>)}
+  </section>;
+}
+
 const emptySchedule = { id:'',therapist_id:'',store_id:'',work_date:'',start_time:'',end_time:'',note:'',is_published:true };
 function slugify(v){return v.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')||`therapist-${Date.now()}`}
 
@@ -59,7 +117,7 @@ export default function AdminPage(){
  {tab==='media'&&<MediaAccounts key={brand} brand={brand}/>}
  {tab==='operations'&&<Operations key={brand} brand={brand} stores={scopedStores} therapists={scopedTherapists} schedules={scopedSchedules} notify={setMessage}/>} 
  {tab==='therapists'&&<><form className="admin-panel admin-form" onSubmit={saveTherapist}><div className="admin-panel-title"><h2>{therapistForm.id?'プロフィール編集':'女の子を新規登録'}</h2></div><div className="admin-grid"><label>名前<input value={therapistForm.name} onChange={e=>setTherapistForm({...therapistForm,name:e.target.value})} required/></label><label>URL用ID<input value={therapistForm.slug} onChange={e=>setTherapistForm({...therapistForm,slug:e.target.value})}/></label><label>年齢<input type="number" min="18" value={therapistForm.age} onChange={e=>setTherapistForm({...therapistForm,age:e.target.value})}/></label><label>身長<input type="number" value={therapistForm.height} onChange={e=>setTherapistForm({...therapistForm,height:e.target.value})}/></label><label>指名料<input type="number" value={therapistForm.nomination_fee} onChange={e=>setTherapistForm({...therapistForm,nomination_fee:e.target.value})}/></label></div><fieldset><legend>在籍ブランド</legend>{[['marron','MarroN'],['resort-style','Resort-style']].map(([code,label])=><label key={code}><input type="checkbox" checked={(therapistForm.brand_codes||[brand]).includes(code)} onChange={e=>{const codes=therapistForm.brand_codes||[brand];setTherapistForm({...therapistForm,brand_codes:e.target.checked?[...codes,code]:codes.filter(c=>c!==code)})}}/>{label}</label>)}</fieldset><fieldset><legend>在籍拠点</legend>{stores.map(s=><label key={s.id}><input type="checkbox" checked={therapistForm.store_ids.includes(s.id)} onChange={e=>setTherapistForm({...therapistForm,store_ids:e.target.checked?[...therapistForm.store_ids,s.id]:therapistForm.store_ids.filter(id=>id!==s.id)})}/>{s.name}</label>)}</fieldset><label>プロフィール画像<input type="file" onChange={uploadImage}/></label><label>店長からの紹介<textarea value={therapistForm.manager_comment} onChange={e=>setTherapistForm({...therapistForm,manager_comment:e.target.value})}/></label><label>プロフィール本文<textarea value={therapistForm.profile_text} onChange={e=>setTherapistForm({...therapistForm,profile_text:e.target.value})}/></label><button className="admin-primary" disabled={saving}>プロフィールを保存</button></form><section className="admin-card-list">{scopedTherapists.map(x=><article className="admin-person-card" key={x.id}><img src={therapistImageUrl(x.image_path)} alt={x.name}/><div><h3>{x.name}</h3></div><button onClick={()=>{setTherapistForm({...emptyTherapist,...x});window.scrollTo({top:0,behavior:'smooth'})}}>編集</button></article>)}</section></>}
- {tab==='schedules'&&<><ShiftRequests key={brand} brand={brand} onApproved={loadData}/><form className="admin-panel admin-form" onSubmit={saveSchedule}><div className="admin-panel-title"><h2>{scheduleForm.id?'出勤予定を編集':'出勤予定を追加'}</h2>{scheduleForm.id&&<button type="button" disabled={saving} onClick={()=>{setScheduleForm(emptySchedule);setMessage('');}}>編集をやめる</button>}</div><p>終了時間が開始時間より早い場合は翌日扱いです（例：23:00〜翌3:00）。開始・終了は別の時刻を指定してください。</p><div className="admin-grid"><label>女の子<select value={scheduleForm.therapist_id} onChange={e=>setScheduleForm({...scheduleForm,therapist_id:e.target.value})} required><option value="">選択</option>{scopedTherapists.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>出勤店舗<select value={scheduleForm.store_id} onChange={e=>setScheduleForm({...scheduleForm,store_id:e.target.value})} required><option value="">選択</option>{scopedStores.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>出勤日<input type="date" value={scheduleForm.work_date} onChange={e=>setScheduleForm({...scheduleForm,work_date:e.target.value})} required/></label><ScheduleTimeSelect label="開始" value={scheduleForm.start_time} onChange={value=>setScheduleForm({...scheduleForm,start_time:value})}/><ScheduleTimeSelect label="終了" value={scheduleForm.end_time} onChange={value=>setScheduleForm({...scheduleForm,end_time:value})}/></div><button className="admin-primary" disabled={saving}>{saving?'保存中…':scheduleForm.id?'変更を保存':'出勤予定を保存'}</button></form><section className="admin-schedule-list">{sortedSchedules.map(x=><article key={x.id}><strong>{x.work_date} {x.start_time?.slice(0,5)}〜{x.end_time?.slice(0,5)}{x.start_time&&x.end_time&&x.end_time<x.start_time?'（翌日）':''}</strong><p>{x.resort_therapists?.name}／{x.resort_stores?.name}</p><button type="button" disabled={saving} onClick={()=>{setScheduleForm({...emptySchedule,...x,store_id:String(x.store_id),start_time:x.start_time?.slice(0,5)||'',end_time:x.end_time?.slice(0,5)||''});setMessage('');window.scrollTo({top:0,behavior:'smooth'});}}>編集</button></article>)}</section></>}
+ {tab==='schedules'&&<><ShiftRequests key={brand} brand={brand} onApproved={loadData}/><form className="admin-panel admin-form" onSubmit={saveSchedule}><div className="admin-panel-title"><h2>{scheduleForm.id?'出勤予定を編集':'出勤予定を追加'}</h2>{scheduleForm.id&&<button type="button" disabled={saving} onClick={()=>{setScheduleForm(emptySchedule);setMessage('');}}>編集をやめる</button>}</div><p>終了時間が開始時間より早い場合は翌日扱いです（例：23:00〜翌3:00）。開始・終了は別の時刻を指定してください。</p><div className="admin-grid"><label>女の子<select value={scheduleForm.therapist_id} onChange={e=>setScheduleForm({...scheduleForm,therapist_id:e.target.value})} required><option value="">選択</option>{scopedTherapists.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>出勤店舗<select value={scheduleForm.store_id} onChange={e=>setScheduleForm({...scheduleForm,store_id:e.target.value})} required><option value="">選択</option>{scopedStores.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label><label>出勤日<input type="date" value={scheduleForm.work_date} onChange={e=>setScheduleForm({...scheduleForm,work_date:e.target.value})} required/></label><ScheduleTimeSelect label="開始" value={scheduleForm.start_time} onChange={value=>setScheduleForm({...scheduleForm,start_time:value})}/><ScheduleTimeSelect label="終了" value={scheduleForm.end_time} onChange={value=>setScheduleForm({...scheduleForm,end_time:value})}/></div><button className="admin-primary" disabled={saving}>{saving?'保存中…':scheduleForm.id?'変更を保存':'出勤予定を保存'}</button></form><RegisteredSchedules key={brand} schedules={sortedSchedules} stores={scopedStores} saving={saving} onEdit={x=>{setScheduleForm({...emptySchedule,...x,store_id:String(x.store_id),start_time:x.start_time?.slice(0,5)||'',end_time:x.end_time?.slice(0,5)||''});setMessage('');window.scrollTo({top:0,behavior:'smooth'});}}/></>}
  </main>;
 }
 
