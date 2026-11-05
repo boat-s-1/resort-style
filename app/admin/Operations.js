@@ -38,6 +38,39 @@ function bookingStart(row) {
   return hour * 60 + minute;
 }
 
+// Booking dates are local calendar dates. Early morning belongs to the previous business day.
+function dailySalesRows(bookings, month) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const days = new Map(Array.from({ length: daysInMonth }, (_, index) => [
+    `${month}-${String(index + 1).padStart(2, '0')}`,
+    { count: 0, sales: 0, payout: 0 },
+  ]));
+
+  for (const booking of bookings) {
+    if (booking.status !== 'completed' || !booking.start_time) continue;
+    const [hours, minutes, seconds = 0] = booking.start_time.split(':').map(Number);
+    const startSeconds = hours * 3600 + minutes * 60 + seconds;
+    let date = booking.booking_date;
+    if (startSeconds <= 5 * 3600) {
+      const previousDay = new Date(`${date}T00:00:00Z`);
+      previousDay.setUTCDate(previousDay.getUTCDate() - 1);
+      date = previousDay.toISOString().slice(0, 10);
+    } else if (startSeconds < 10 * 3600) {
+      continue;
+    }
+    const day = days.get(date);
+    if (!day) continue;
+    day.count += 1;
+    day.sales += Number(booking.total_amount || 0);
+    day.payout += Number(booking.therapist_payout || 0);
+  }
+
+  return Array.from(days, ([date, day]) => [
+    date, `${day.count}件`, yen(day.sales), yen(day.payout), yen(day.sales - day.payout),
+  ]);
+}
+
 export default function Operations({ stores, therapists, schedules, notify, brand }) {
   const [view, setView] = useState('dashboard');
   const [month, setMonth] = useState(jpDate().slice(0, 7));
@@ -232,6 +265,11 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
     {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
     {view === 'dashboard' && <><div className="admin-metrics admin-finance-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="問い合わせ件数" value={`${inquiryCount}件`} /><Metric label="不成約件数" value={`${monthInquiries.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','問い合わせ','不成約','会計件数','売上','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.inquiries}件`,`${s.lost}件`,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>問い合わせ件数＝登録された予約件数＋不成約件数。同じ問い合わせを重複登録しないでください。</p><p>利益＝対象月の店舗実質売上−対象月の経費</p><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></>}
+    {view === 'dashboard' && <section className="admin-panel">
+      <h2>営業日別の売上</h2>
+      <p>予約の開始時刻を基準に、各日10:00〜翌朝5:00の会計済み予約を集計します（日本時間）。</p>
+      <Table head={['営業日', '会計件数', '売上', 'バック', '店舗実質売上']} rows={dailySalesRows(bookings, month)} />
+    </section>}
     {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{inquiryId?'不成約を編集':booking.id ? '予約・会計を編集' : inquiryMode?'不成約を登録':'予約を登録'}</h2>{(booking.id||inquiryId) && <button type="button" onClick={resetInquiry}>新規登録に戻る</button>}</div>
       <label className="admin-switch"><input type="checkbox" checked={inquiryMode} disabled={Boolean(booking.id||inquiryId||saving)} onChange={e=>{setInquiryMode(e.target.checked);setBooking({...newBooking(),store_id:booking.store_id,customer_id:booking.customer_id,booking_date:booking.booking_date});}}/>不成約（問い合わせのみ・予約枠や売上に含めない）</label>
       {!booking.id&&!inquiryId && <div style={{marginBottom:'18px'}}><button type="button" onClick={()=>setQuickCustomerOpen((v)=>!v)}>{quickCustomerOpen ? '新規顧客登録を閉じる' : '＋ 新規顧客登録'}</button></div>}
