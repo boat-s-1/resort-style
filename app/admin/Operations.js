@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import MarronBookingFields from './MarronBookingFields';
+import { bookingBusinessDate, businessDate, inBusinessHours, japanBusinessDate, japanTimeStamp } from '../../lib/businessDay.mjs';
 import ExpensesPanel from './ExpensesPanel';
 import customerSearch from '../../lib/customerSearch.cjs';
 const {filterCustomers,customerOptions}=customerSearch;
@@ -29,15 +30,6 @@ const resortAdjustments=Array.from({length:21},(_,i)=>{const n=(i-10)*500;return
 function savedOption(options,value){return options.some(([v])=>String(v)===String(value))?options:[[value,`${value}（保存済み）`],...options]}
 const labels = { reserved: '予約', completed: '会計済み', cancelled: 'キャンセル', no_show: '無断キャンセル' };
 const csv = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
-function currentJpMinutes() {
-  const parts = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
-  return Number(parts.find((p) => p.type === 'hour')?.value || 0) * 60 + Number(parts.find((p) => p.type === 'minute')?.value || 0);
-}
-function bookingStart(row) {
-  const [hour, minute] = (row.start_time || '00:00').split(':').map(Number);
-  return hour * 60 + minute;
-}
-
 // Booking dates are local calendar dates. Early morning belongs to the previous business day.
 function dailySalesRows(bookings, month) {
   const [year, monthNumber] = month.split('-').map(Number);
@@ -49,17 +41,8 @@ function dailySalesRows(bookings, month) {
 
   for (const booking of bookings) {
     if (booking.status !== 'completed' || !booking.start_time) continue;
-    const [hours, minutes, seconds = 0] = booking.start_time.split(':').map(Number);
-    const startSeconds = hours * 3600 + minutes * 60 + seconds;
-    let date = booking.booking_date;
-    if (startSeconds <= 5 * 3600) {
-      const previousDay = new Date(`${date}T00:00:00Z`);
-      previousDay.setUTCDate(previousDay.getUTCDate() - 1);
-      date = previousDay.toISOString().slice(0, 10);
-    } else if (startSeconds < 10 * 3600) {
-      continue;
-    }
-    const day = days.get(date);
+    if (!inBusinessHours(booking.start_time)) continue;
+    const day = days.get(bookingBusinessDate(booking));
     if (!day) continue;
     day.count += 1;
     day.sales += Number(booking.total_amount || 0);
@@ -73,7 +56,7 @@ function dailySalesRows(bookings, month) {
 
 export default function Operations({ stores, therapists, schedules, notify, brand }) {
   const [view, setView] = useState('dashboard');
-  const [month, setMonth] = useState(jpDate().slice(0, 7));
+  const [month, setMonth] = useState(() => japanBusinessDate().slice(0, 7));
   const [customers, setCustomers] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
@@ -82,7 +65,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [expenses,setExpenses]=useState([]),[expensesReady,setExpensesReady]=useState(false);
   const newCustomer = () => ({ ...blankCustomer, [brand === 'marron' ? 'uses_marron' : 'uses_resort_style']: true });
   const [customer, setCustomer] = useState(newCustomer);
-  const newBooking=()=>({...blankBooking,...(brand==='marron'?{course_name:'',nomination_code:'なし',extension_minutes:0,option_fee:0,price_adjustment:0,payout_adjustment:0}: {course_name:'',duration_minutes:0,nomination_code:'なし',extension_minutes:0,price_adjustment:0})});
+  const newBooking=()=>({...blankBooking,booking_date:jpDate(),...(brand==='marron'?{course_name:'',nomination_code:'なし',extension_minutes:0,option_fee:0,price_adjustment:0,payout_adjustment:0}: {course_name:'',duration_minutes:0,nomination_code:'なし',extension_minutes:0,price_adjustment:0})});
   const [booking, setBooking] = useState(newBooking);
   const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
   const [quickCustomer, setQuickCustomer] = useState(newCustomer);
@@ -103,18 +86,19 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   }, [notify, stores]);
   useEffect(() => { load(); }, [load]);
 
-  const monthRows = useMemo(() => bookings.filter((b) => b.booking_date.startsWith(month)), [bookings, month]);
+  const todayBusiness = japanBusinessDate();
+  const monthRows = useMemo(() => bookings.filter((b) => bookingBusinessDate(b).startsWith(month)), [bookings, month]);
   const monthInquiries=inquiries.filter(i=>i.inquiry_date.startsWith(month));
   const inquiryCount=monthRows.length+monthInquiries.length;
-  const completed = monthRows.filter((b) => b.status === 'completed');
+  const completed = monthRows.filter(b => b.status === 'completed' && inBusinessHours(b.start_time));
   const monthSales = completed.reduce((s, b) => s + b.total_amount, 0);
   const monthPayout = completed.reduce((s, b) => s + b.therapist_payout, 0);
   const monthExpenses=expenses.filter(e=>e.expense_month===month&&!e.is_archived);
   const expenseTotal=monthExpenses.reduce((sum,e)=>sum+Number(e.amount),0);
   const metrics = {
-    today: bookings.filter((b) => b.booking_date === jpDate() && b.status === 'completed').reduce((s, b) => s + b.total_amount, 0),
+    today: bookings.filter((b) => bookingBusinessDate(b) === todayBusiness && inBusinessHours(b.start_time) && b.status === 'completed').reduce((s, b) => s + b.total_amount, 0),
     unpaid: monthRows.filter((b) => b.payment_method === 'unpaid' && !['cancelled', 'no_show'].includes(b.status)).length,
-    workers: new Set(schedules.filter((s) => s.work_date === jpDate()).map((s) => s.therapist_id)).size,
+    workers: new Set(schedules.filter((s) => businessDate(s.work_date, s.start_time) === todayBusiness).map((s) => s.therapist_id)).size,
   };
   const storeRows = stores.map((s) => {
     const rows = completed.filter((b) => b.store_id === s.id);
@@ -126,7 +110,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const activity = therapists.map((t) => {
     const rows = completed.filter((b) => b.therapist_id === t.id);
     const minutes = rows.reduce((n, b) => n + b.duration_minutes, 0);
-    const workMinutes = schedules.filter((s) => s.therapist_id === t.id && s.work_date.startsWith(month)).reduce((n, s) => {
+    const workMinutes = schedules.filter((s) => s.therapist_id === t.id && businessDate(s.work_date, s.start_time).startsWith(month)).reduce((n, s) => {
       if (!s.start_time || !s.end_time) return n;
       const a = s.start_time.split(':').map(Number), z = s.end_time.split(':').map(Number);
       return n + ((z[0] * 60 + z[1] - a[0] * 60 - a[1] + 1440) % 1440);
@@ -150,12 +134,15 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const resortPayout=resortAutoPayout?resortCourse[3]+Number(booking.extension_fee||0)/4000*3000+resortNomination[3]:Number(booking.therapist_payout||0);
   const resortNominationValue=resortNominations.some(([code,,fee])=>code===(booking.nomination_code||'なし')&&fee===Number(booking.nomination_fee||0))?(booking.nomination_code||'なし'):'saved';
   const resortNominationOptions=[...(resortNominationValue==='saved'?[['saved',`${yen(booking.nomination_fee)}（保存済み）`]]:[]),...resortNominations.map(([code,label])=>[code,label])];
-  const nowMinutes = currentJpMinutes();
-  const roomRows = stores.flatMap((store) => [1, 2].map((roomNumber) => {
-    const rows = bookings.filter((b) => b.store_id === store.id && b.room_number === roomNumber && b.booking_date === jpDate() && !['cancelled', 'no_show'].includes(b.status)).sort((a, b) => bookingStart(a) - bookingStart(b));
-    const active = rows.find((b) => bookingStart(b) <= nowMinutes && nowMinutes < bookingStart(b) + b.duration_minutes);
-    const next = rows.find((b) => bookingStart(b) > nowMinutes);
-    return { store, roomNumber, rows, active, next };
+  const now = Date.now();
+  const roomRows = stores.flatMap(store => [1, 2].map(roomNumber => {
+    const rows = bookings.filter(b => b.store_id === store.id && b.room_number === roomNumber &&
+      !['cancelled', 'no_show'].includes(b.status) && b.start_time)
+      .map(booking => ({ booking, start: japanTimeStamp(booking.booking_date, booking.start_time) }))
+      .sort((a, b) => a.start - b.start);
+    const active = rows.find(({ booking, start }) => start <= now && now < start + booking.duration_minutes * 60000)?.booking;
+    const next = rows.find(({ booking, start }) => start > now && bookingBusinessDate(booking) === todayBusiness)?.booking;
+    return { store, roomNumber, active, next };
   }));
 
   async function saveCustomer(e) {
@@ -264,13 +251,13 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   return <section>
     <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
     {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
-    {view === 'dashboard' && <><div className="admin-metrics admin-finance-metrics"><Metric label="本日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="問い合わせ件数" value={`${inquiryCount}件`} /><Metric label="不成約件数" value={`${monthInquiries.length}件`} /><Metric label="本日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','問い合わせ','不成約','会計件数','売上','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.inquiries}件`,`${s.lost}件`,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>問い合わせ件数＝登録された予約件数＋不成約件数。同じ問い合わせを重複登録しないでください。</p><p>利益＝対象月の店舗実質売上−対象月の経費</p><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></>}
+    {view === 'dashboard' && <><div className="admin-metrics admin-finance-metrics"><Metric label="本営業日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="問い合わせ件数" value={`${inquiryCount}件`} /><Metric label="不成約件数" value={`${monthInquiries.length}件`} /><Metric label="本営業日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','問い合わせ','不成約','会計件数','売上','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.inquiries}件`,`${s.lost}件`,`${s.count}件`,yen(s.sales),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>問い合わせ件数＝登録された予約件数＋不成約件数。同じ問い合わせを重複登録しないでください。</p><p>利益＝対象月の店舗実質売上−対象月の経費</p><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></>}
     {view === 'dashboard' && <section className="admin-panel">
       <h2>営業日別の売上</h2>
-      <p>予約の開始時刻を基準に、各日10:00〜翌朝5:00の会計済み予約を集計します（日本時間）。</p>
+      <p>日別・月別の売上は、予約開始時刻が各日10:00〜翌朝5:00の会計済み予約を集計します（日本時間）。</p>
       <Table head={['営業日', '会計件数', '売上', 'バック', '店舗実質売上']} rows={dailySalesRows(bookings, month)} />
     </section>}
-    {view === 'bookings' && <><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{inquiryId?'不成約を編集':booking.id ? '予約・会計を編集' : inquiryMode?'不成約を登録':'予約を登録'}</h2>{(booking.id||inquiryId) && <button type="button" onClick={resetInquiry}>新規登録に戻る</button>}</div>
+    {view === 'bookings' && <><p>対象月は営業日で絞り込みます。深夜の予約は実際の開始日で入力してください（例：11月7日2:00は11月6日の営業分）。</p><form className="admin-panel admin-form" onSubmit={saveBooking}><div className="admin-panel-title"><h2>{inquiryId?'不成約を編集':booking.id ? '予約・会計を編集' : inquiryMode?'不成約を登録':'予約を登録'}</h2>{(booking.id||inquiryId) && <button type="button" onClick={resetInquiry}>新規登録に戻る</button>}</div>
       <label className="admin-switch"><input type="checkbox" checked={inquiryMode} disabled={Boolean(booking.id||inquiryId||saving)} onChange={e=>{setInquiryMode(e.target.checked);setBooking({...newBooking(),store_id:booking.store_id,customer_id:booking.customer_id,booking_date:booking.booking_date});}}/>不成約（問い合わせのみ・予約枠や売上に含めない）</label>
       {!booking.id&&!inquiryId && <div style={{marginBottom:'18px'}}><button type="button" onClick={()=>setQuickCustomerOpen((v)=>!v)}>{quickCustomerOpen ? '新規顧客登録を閉じる' : '＋ 新規顧客登録'}</button></div>}
       {quickCustomerOpen && !booking.id&&!inquiryId && <div className="admin-panel" style={{marginBottom:'22px',padding:'18px'}}><div className="admin-panel-title"><h3>新規顧客を登録</h3></div><div className="admin-grid"><Input label="名前" value={quickCustomer.name} set={(v)=>setQuickCustomer({...quickCustomer,name:v})}/><Input label="電話番号" type="tel" value={quickCustomer.phone} set={(v)=>setQuickCustomer({...quickCustomer,phone:v})}/><Input label="LINE名（任意）" required={false} value={quickCustomer.line_name||''} set={(v)=>setQuickCustomer({...quickCustomer,line_name:v})}/></div><CustomerBrands value={quickCustomer} set={setQuickCustomer}/><label>接客メモ<textarea rows="2" value={quickCustomer.notes} onChange={(e)=>setQuickCustomer({...quickCustomer,notes:e.target.value})}/></label><label>注意事項<textarea rows="2" value={quickCustomer.caution} onChange={(e)=>setQuickCustomer({...quickCustomer,caution:e.target.value})}/></label><button className="admin-primary" type="button" disabled={saving} onClick={saveQuickCustomer}>顧客を登録して予約に選択</button></div>}
@@ -296,7 +283,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     <label>メモ<textarea rows="3" value={booking.notes} onChange={(e)=>setBooking({...booking,notes:e.target.value})}/></label>{brand==='marron'?<><div className="marron-totals" aria-live="polite"><Metric label="支払い額" value={marronCalculation?yen(marronCalculation.total_amount):'—'}/><Metric label="キャストバック" value={marronCalculation?yen(marronCalculation.therapist_payout):'—'}/><Metric label="店落ち" value={marronCalculation?yen(marronCalculation.store_amount):'—'}/></div>{pricingError&&<p role="alert">{pricingError}</p>}</>:<><div className="marron-totals" aria-live="polite"><Metric label="売上" value={yen(total)}/><Metric label="女子給料" value={yen(resortPayout)}/><Metric label="店落ち" value={yen(total-resortPayout)}/></div><p>女子給料＝コース給料＋延長給料＋指名バック。割引・割増は売上と店落ちに反映します。</p>{booking.course_name&&!resortAutoPayout&&<p>保存済みの料金です。指定のコース・延長・指名料を選び直すと女子給料を自動計算します。</p>}</>}<button className="admin-primary" disabled={saving}>保存</button></>}</form>
     <div className="admin-table-wrap admin-table-section"><table className="admin-table"><thead><tr>{['日時','店舗・ルーム・女の子','顧客','コース','売上','状態','操作'].map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{monthRows.map((b)=><tr key={b.id}><td>{b.booking_date}<small>{b.start_time?.slice(0,5)}</small></td><td>{b.resort_stores?.name} ルーム{b.room_number}<small>{b.resort_therapists?.name}</small></td><td>{b.resort_customers?.name}<small>{b.resort_customers?.phone}</small></td><td>{b.course_name}<small>{b.duration_minutes}分</small></td><td>{yen(b.total_amount)}<small>実質 {yen(b.total_amount-b.therapist_payout)}</small></td><td><span className={`admin-badge ${b.status}`}>{b.payment_method==='unpaid'&&b.status==='reserved'?'未会計':labels[b.status]}</span></td><td><div className="admin-row-actions"><button onClick={()=>{setInquiryMode(false);setInquiryId('');setBooking({...newBooking(),...b,store_id:String(b.store_id),room_number:String(b.room_number),start_time:b.start_time?.slice(0,5)||''});scrollTo({top:0,behavior:'smooth'});}}>編集</button><button className="danger" onClick={()=>removeBooking(b.id)}>削除</button></div></td></tr>)}</tbody></table>{!monthRows.length&&<p className="admin-empty">対象月の予約はありません。</p>}</div><h3 className="admin-section-heading">不成約の問い合わせ（{monthInquiries.length}件）</h3><div className="admin-table-wrap admin-table-section"><table className="admin-table"><thead><tr>{['日付','店舗','顧客','女の子','理由・メモ','操作'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{monthInquiries.map(i=><tr key={i.id}><td>{i.inquiry_date}</td><td>{i.resort_stores?.name}</td><td>{i.resort_customers?.name||'未登録'}<small>{i.resort_customers?.phone||''}</small></td><td>{i.resort_therapists?.name||'未定'}</td><td>{i.reason}<small>{i.notes}</small></td><td><div className="admin-row-actions"><button onClick={()=>{setInquiryMode(true);setInquiryId(i.id);setBooking({...newBooking(),store_id:String(i.store_id),customer_id:i.customer_id||'',therapist_id:i.therapist_id||'',booking_date:i.inquiry_date,inquiry_reason:i.reason,notes:i.notes});scrollTo({top:0,behavior:'smooth'});}}>編集</button><button className="danger" onClick={()=>removeInquiry(i.id)}>削除</button></div></td></tr>)}</tbody></table>{!monthInquiries.length&&<p className="admin-empty">対象月の不成約はありません。</p>}</div></>}
     {view === 'customers' && <><form className="admin-panel admin-form" onSubmit={saveCustomer}><div className="admin-panel-title"><h2>{customer.id?'顧客情報を編集':'顧客を新規登録'}</h2>{customer.id&&<button type="button" onClick={()=>setCustomer(newCustomer())}>新規登録に戻る</button>}</div><div className="admin-grid"><Input label="名前" value={customer.name} set={(v)=>setCustomer({...customer,name:v})}/><Input label="電話番号" type="tel" value={customer.phone} set={(v)=>setCustomer({...customer,phone:v})}/><Input label="LINE名（任意）" required={false} value={customer.line_name||''} set={(v)=>setCustomer({...customer,line_name:v})}/><label className="admin-switch"><input type="checkbox" checked={customer.is_blocked} onChange={(e)=>setCustomer({...customer,is_blocked:e.target.checked})}/>要注意・受付不可</label></div><CustomerBrands value={customer} set={setCustomer}/><label>接客メモ<textarea rows="3" value={customer.notes} onChange={(e)=>setCustomer({...customer,notes:e.target.value})}/></label><label>注意事項<textarea rows="3" value={customer.caution} onChange={(e)=>setCustomer({...customer,caution:e.target.value})}/></label><button className="admin-primary" disabled={saving}>顧客情報を保存</button></form><div className="admin-toolbar"><input placeholder="名前・電話番号・LINE名で検索" value={search} onChange={(e)=>setSearch(e.target.value)}/></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr>{['顧客','電話番号','来店','最終来店','累計利用額','操作'].map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{customerRows.map((c)=><tr key={c.id} className={c.is_blocked?'blocked':''}><td><strong>{c.name}</strong>{c.is_blocked&&<span className="admin-badge danger">要注意</span>}<small>{c.line_name? `LINE: ${c.line_name}`:''}</small></td><td>{c.phone}</td><td>{c.visits}回</td><td>{c.last}</td><td>{yen(c.total)}</td><td><button onClick={()=>{setCustomer({...blankCustomer,...c});scrollTo({top:0,behavior:'smooth'});}}>編集</button></td></tr>)}</tbody></table></div></>}
-    {view === 'activity' && <><h2 className="admin-section-heading">本日のルーム稼働状況</h2><div className="admin-room-grid">{roomRows.map((room) => <article className={`admin-room-card ${room.active ? 'in-use' : ''}`} key={`${room.store.id}-${room.roomNumber}`}><div className="admin-room-card-head"><h3>{room.store.name.replace('店','')}ルーム{room.roomNumber}</h3><span>{room.active ? '利用中' : '空き'}</span></div>{room.active ? <><strong>{room.active.resort_therapists?.name}</strong><p>{room.active.start_time?.slice(0,5)}〜（{room.active.duration_minutes}分）</p><small>お客様：{room.active.resort_customers?.name}</small></> : <p className="admin-room-empty">現在は空いています</p>}{room.next && room.next.id !== room.active?.id && <p className="admin-room-next">次回 {room.next.start_time?.slice(0,5)}〜　{room.next.resort_therapists?.name}</p>}</article>)}</div><h2 className="admin-section-heading">女の子別 月間稼働</h2><Table head={['女の子','接客','施術時間','稼働率','売上','バック','指名','リピート']} rows={activity.map((t)=>[t.name,`${t.count}件`,`${t.minutes}分`,t.utilization===null?'—':`${t.utilization}%`,yen(t.sales),yen(t.payout),`${t.nomination}件`,`${t.repeat}件`])} /></>}
+    {view === 'activity' && <><h2 className="admin-section-heading">本営業日のルーム稼働状況</h2><div className="admin-room-grid">{roomRows.map((room) => <article className={`admin-room-card ${room.active ? 'in-use' : ''}`} key={`${room.store.id}-${room.roomNumber}`}><div className="admin-room-card-head"><h3>{room.store.name.replace('店','')}ルーム{room.roomNumber}</h3><span>{room.active ? '利用中' : '空き'}</span></div>{room.active ? <><strong>{room.active.resort_therapists?.name}</strong><p>{room.active.start_time?.slice(0,5)}〜（{room.active.duration_minutes}分）</p><small>お客様：{room.active.resort_customers?.name}</small></> : <p className="admin-room-empty">現在は空いています</p>}{room.next && room.next.id !== room.active?.id && <p className="admin-room-next">次回 {room.next.start_time?.slice(0,5)}〜　{room.next.resort_therapists?.name}</p>}</article>)}</div><h2 className="admin-section-heading">女の子別 月間稼働</h2><Table head={['女の子','接客','施術時間','稼働率','売上','バック','指名','リピート']} rows={activity.map((t)=>[t.name,`${t.count}件`,`${t.minutes}分`,t.utilization===null?'—':`${t.utilization}%`,yen(t.sales),yen(t.payout),`${t.nomination}件`,`${t.repeat}件`])} /></>}
   </section>;
 }
 

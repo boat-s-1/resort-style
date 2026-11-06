@@ -1,5 +1,6 @@
 'use client';
 
+import { japanBusinessDate } from '../../lib/businessDay.mjs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, therapistImageUrl } from '../../lib/supabase';
 import Operations from './Operations';
@@ -29,7 +30,7 @@ function RegisteredSchedules({ schedules, stores, saving, onEdit }) {
   const [therapist, setTherapist] = useState('');
   const [store, setStore] = useState('');
   const [showPast, setShowPast] = useState(false);
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+  const today = japanBusinessDate();
   const names = new Map();
   const days = new Map();
 

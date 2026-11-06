@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
+import { japanBusinessDate } from '../lib/businessDay.mjs';
 import { useState, useEffect } from 'react';
 import { supabase, therapistImageUrl } from '../lib/supabase';
 
@@ -31,7 +32,7 @@ export default function Home() {
     Promise.all([
       supabase.from('resort_stores').select('*').eq('is_active', true).eq('brand_code', 'resort-style').order('display_order'),
       supabase.from('resort_therapists').select('*, resort_therapist_stores(store_id)').contains('brand_codes', ['resort-style']).eq('is_published', true).order('display_order').order('name'),
-      supabase.from('resort_schedules').select('*').eq('is_published', true).gte('work_date', new Date().toISOString().slice(0, 10)).order('work_date').order('start_time'),
+      supabase.from('resort_schedules').select('*').eq('is_published', true).gte('work_date', japanBusinessDate()).order('work_date').order('start_time'),
     ]).then(([storeResult, therapistResult, scheduleResult]) => {
       if (storeResult.error) throw storeResult.error;
       if (therapistResult.error) throw therapistResult.error;
