@@ -2,6 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
+import { japanBusinessDate } from '../../../lib/businessDay.mjs';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase, therapistImageUrl } from '../../../lib/supabase';
@@ -29,7 +30,7 @@ export default function TherapistProfile() {
           .eq('therapist_id', therapist.id)
           .eq('resort_stores.brand_code', 'resort-style')
           .eq('is_published', true)
-          .gte('work_date', new Date().toISOString().slice(0, 10))
+          .gte('work_date', japanBusinessDate())
           .order('work_date')
           .order('start_time');
         setSchedule(scheduleRows || []);
