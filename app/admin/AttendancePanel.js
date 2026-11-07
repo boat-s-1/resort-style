@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { japanBusinessDate } from '../../lib/businessDay.mjs';
 import attendanceMath from '../../lib/attendance.cjs';
 
 const {attendanceDetails}=attendanceMath;
@@ -13,6 +14,9 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
   const [end,setEnd]=useState('');
   const [note,setNote]=useState('');
   const [saving,setSaving]=useState(false);
+  const [showPast,setShowPast]=useState(false);
+  const today=japanBusinessDate();
+  const visibleSchedules=schedules.filter(row=>showPast||row.work_date>=today).slice().reverse();
   const selected=schedules.find(row=>row.id===selectedId);
   const current=records.find(row=>row.schedule_id===selectedId);
   useEffect(()=>{
@@ -87,8 +91,11 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
         <button type="button" onClick={()=>setSelectedId('')}>閉じる</button></div>
     </form>:<p>下の出勤一覧から選択してください。</p>}
     {selected&&current?.status==='absent'&&<p>当日欠勤として記録済みです。</p>}
+    <label className="admin-switch"><input type="checkbox" checked={showPast}
+      onChange={event=>setShowPast(event.target.checked)}/>過去の出勤を表示</label>
+    {!visibleSchedules.length&&<p className="admin-empty">表示する出勤がありません。</p>}
     <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>日付</th><th>女の子</th><th>出勤実績</th><th>操作</th></tr></thead>
-      <tbody>{schedules.filter(s=>s.work_date<=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'})).slice().reverse().slice(0,30).map(row=>{
+      <tbody>{visibleSchedules.map(row=>{
         const record=records.find(item=>item.schedule_id===row.id);
         const details=attendanceDetails(row,record);
         return <tr key={row.id}><td>{row.work_date}</td><td>{row.resort_therapists?.name}</td>
