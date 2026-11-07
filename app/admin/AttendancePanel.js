@@ -16,7 +16,7 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
   const [saving,setSaving]=useState(false);
   const [showPast,setShowPast]=useState(false);
   const today=japanBusinessDate();
-  const visibleSchedules=schedules.filter(row=>showPast||row.work_date>=today).slice().reverse();
+  const visibleSchedules=schedules.filter(row=>showPast||row.work_date>=today).slice().sort((a,b)=>`${a.work_date}T${a.start_time||'00:00'}`.localeCompare(`${b.work_date}T${b.start_time||'00:00'}`));
   const selected=schedules.find(row=>row.id===selectedId);
   const current=records.find(row=>row.schedule_id===selectedId);
   useEffect(()=>{
