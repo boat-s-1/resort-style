@@ -12,6 +12,18 @@ const { calculateMarron } = pricing;
 
 const jpDate = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
 const yen = (n) => `¥${Number(n || 0).toLocaleString('ja-JP')}`;
+async function loadCompletedCustomerHistory() {
+  const rows=[];
+  for(let offset=0;;offset+=1000){
+    const {data,error}=await supabase.from('resort_bookings')
+      .select('customer_id, store_id, booking_date, total_amount')
+      .eq('status','completed').order('id').range(offset,offset+999);
+    if(error)return {data:null,error};
+    rows.push(...(data||[]));
+    if(!data||data.length<1000)return {data:rows,error:null};
+  }
+}
+
 const blankCustomer = { id: '', name: '', phone: '', line_name: '', notes: '', caution: '', is_blocked: false, uses_marron: false, uses_resort_style: false };
 const blankBooking = { id: '', store_id: '', room_number: '1', therapist_id: '', customer_id: '', booking_date: jpDate(), start_time: '', duration_minutes: 90, course_name: '90分コース', base_price: 0, nomination_fee: 0, extension_fee: 0, discount: 0, therapist_payout: 0, payment_method: 'unpaid', status: 'reserved', is_first_visit: true, notes: '' };
 const resortCourses = [
@@ -55,10 +67,11 @@ function dailySalesRows(bookings, month) {
   ]);
 }
 
-export default function Operations({ stores, therapists, schedules, notify, brand }) {
+export default function Operations({ stores, allStores, therapists, schedules, notify, brand }) {
   const [view, setView] = useState('dashboard');
   const [month, setMonth] = useState(() => japanBusinessDate().slice(0, 7));
   const [customers, setCustomers] = useState([]);
+  const [customerHistory, setCustomerHistory] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [inquiryMode, setInquiryMode] = useState(false);
@@ -75,15 +88,16 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const [c, b, expensesResult, inquiryResult] = await Promise.all([
+    const [c, b, expensesResult, inquiryResult, historyResult] = await Promise.all([
       supabase.from('resort_customers').select('*').order('created_at', { ascending: false }),
       supabase.from('resort_bookings').select('*, resort_stores(name), resort_therapists(name), resort_customers(name, phone)').in('store_id', stores.map(s => s.id)).order('booking_date', { ascending: false }).order('start_time', { ascending: false }),
       supabase.from('resort_expenses').select('*').in('store_id',stores.map(s=>s.id)).eq('is_archived',false).order('created_at',{ascending:false}),
       supabase.from('resort_booking_inquiries').select('*, resort_stores(name), resort_therapists(name), resort_customers(name, phone)').in('store_id', stores.map(s=>s.id)).order('inquiry_date',{ascending:false}),
+      loadCompletedCustomerHistory(),
     ]);
     if(expensesResult.error){setExpensesReady(false);notify('経費を読み込めませんでした。利益は未確認です。');}else{setExpenses(expensesResult.data||[]);setExpensesReady(true);}
-    if (c.error || b.error || inquiryResult.error) return notify(`データを読み込めませんでした：${(c.error || b.error || inquiryResult.error).message}`);
-    setCustomers(c.data || []); setBookings(b.data || []); setInquiries(inquiryResult.data || []);
+    if (c.error || b.error || inquiryResult.error || historyResult.error) return notify(`データを読み込めませんでした：${(c.error || b.error || inquiryResult.error || historyResult.error).message}`);
+    setCustomers(c.data || []); setBookings(b.data || []); setInquiries(inquiryResult.data || []); setCustomerHistory(historyResult.data || []);
   }, [notify, stores]);
   useEffect(() => { load(); }, [load]);
 
@@ -118,13 +132,27 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     }, 0);
     return { ...t, count: rows.length, minutes, utilization: workMinutes ? Math.min(100, Math.round(minutes / workMinutes * 100)) : null, sales: rows.reduce((n, b) => n + b.total_amount, 0), payout: rows.reduce((n, b) => n + b.therapist_payout, 0), nomination: rows.filter((b) => b.nomination_fee > 0).length, repeat: rows.filter((b) => !b.is_first_visit).length };
   }).sort((a, b) => b.sales - a.sales);
-  const brandCustomers = customers.filter(c => c[brand === 'marron' ? 'uses_marron' : 'uses_resort_style']);
-  const bookingCustomerMatches=filterCustomers(brandCustomers,bookingCustomerSearch);
-  const bookingCustomerOptions=customerOptions(brandCustomers,bookingCustomerMatches,booking.customer_id);
-  const selectedBookingCustomer=brandCustomers.find(c=>c.id===booking.customer_id);
-  const customerRows = brandCustomers.filter((c) => `${c.name}${c.phone}${c.line_name || ''}`.toLowerCase().includes(search.toLowerCase())).map((c) => {
-    const rows = bookings.filter((b) => b.customer_id === c.id && b.status === 'completed');
-    return { ...c, visits: rows.length, last: rows.map((b) => b.booking_date).sort().at(-1) || '—', total: rows.reduce((n, b) => n + b.total_amount, 0) };
+  const bookingCustomerMatches=filterCustomers(customers,bookingCustomerSearch);
+  const bookingCustomerOptions=customerOptions(customers,bookingCustomerMatches,booking.customer_id);
+  const selectedBookingCustomer=customers.find(c=>c.id===booking.customer_id);
+  const storeBrands=new Map(allStores.map(s=>[s.id,s.brand_code]));
+  const historyByCustomer=new Map();
+  for(const row of customerHistory){
+    if(!row.customer_id)continue;
+    const brandCode=storeBrands.get(row.store_id);
+    if(!['marron','resort-style'].includes(brandCode))continue;
+    if(!historyByCustomer.has(row.customer_id))historyByCustomer.set(row.customer_id,{marron:[], 'resort-style':[]});
+    historyByCustomer.get(row.customer_id)[brandCode].push(row);
+  }
+  const customerRows=filterCustomers(customers,search).map(c=>{
+    const history=historyByCustomer.get(c.id)||{marron:[], 'resort-style':[]};
+    const marron=history.marron, resort=history['resort-style'];
+    const rows=[...marron,...resort];
+    return {...c, visits:rows.length, last:rows.map(b=>b.booking_date).sort().at(-1)||'—',
+      total:rows.reduce((n,b)=>n+Number(b.total_amount||0),0),
+      marronVisits:marron.length,resortVisits:resort.length,
+      marronTotal:marron.reduce((n,b)=>n+Number(b.total_amount||0),0),
+      resortTotal:resort.reduce((n,b)=>n+Number(b.total_amount||0),0)};
   });
   let marronCalculation=null, pricingError='';
   if(brand==='marron'&&booking.course_name){try{marronCalculation=calculateMarron(booking)}catch(error){pricingError=error.message}}
@@ -161,7 +189,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
       if(error){notify(error.code === '23505' ? '同じ電話番号の顧客が登録済みです。' : `保存できませんでした：${error.message}`);return;}
       if(!data?.length){notify('保存結果を確認できませんでした。再ログインしてお試しください。');return;}
       setCustomer(newCustomer());setSearch('');await load();
-      notify('顧客情報を保存しました。利用店舗のチェックを外すと、その店舗の一覧から非表示になります。');
+      notify('顧客情報を保存しました。顧客は両店舗の予約で選択できます。');
     } catch { notify('通信に失敗しました。登録一覧を確認してから再度お試しください。'); }
     finally { setSaving(false); }
   }
@@ -220,7 +248,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
   async function saveInquiry() {
     if(saving)return;
     if(!stores.some(s=>s.id===Number(booking.store_id)))return notify('問い合わせ先の店舗を選択してください。');
-    if(booking.customer_id&&!brandCustomers.some(c=>c.id===booking.customer_id))return notify('選択中の店舗の顧客を選択してください。');
+    if(booking.customer_id&&!customers.some(c=>c.id===booking.customer_id))return notify('登録済みの顧客を選択してください。');
     if(booking.therapist_id&&!therapists.some(t=>t.id===booking.therapist_id))return notify('選択中の店舗の女の子を選択してください。');
     const reason=(booking.inquiry_reason||'').trim();
     if(!reason||reason.length>500)return notify('不成約の理由を500文字以内で入力してください。');
@@ -298,7 +326,7 @@ export default function Operations({ stores, therapists, schedules, notify, bran
     {!inquiryMode&&<>{brand==='marron'&&<p className="marron-duration">施術時間：<strong>{marronCalculation?`${marronCalculation.duration_minutes}分`:'コースを選択してください'}</strong>（コース＋延長）</p>}
     <label>メモ<textarea rows="3" value={booking.notes} onChange={(e)=>setBooking({...booking,notes:e.target.value})}/></label>{brand==='marron'?<><div className="marron-totals" aria-live="polite"><Metric label="支払い額" value={marronCalculation?yen(marronCalculation.total_amount):'—'}/><Metric label="キャストバック" value={marronCalculation?yen(marronCalculation.therapist_payout):'—'}/><Metric label="店落ち" value={marronCalculation?yen(marronCalculation.store_amount):'—'}/></div>{pricingError&&<p role="alert">{pricingError}</p>}</>:<><div className="marron-totals" aria-live="polite"><Metric label="売上" value={yen(total)}/><Metric label="女子給料" value={yen(resortPayout)}/><Metric label="店落ち" value={yen(total-resortPayout)}/></div><p>オプション料金は売上に加算します。女子給料にはキャストバック調整を加え、店落ちは売上から調整後の女子給料を引いた金額です。</p>{booking.course_name&&!resortAutoPayout&&<p>保存済みの料金です。指定のコース・延長・指名料を選び直すと女子給料を自動計算します。</p>}</>}<button className="admin-primary" disabled={saving}>保存</button></>}</form>
     <div className="admin-table-wrap admin-table-section"><table className="admin-table"><thead><tr>{['日時','店舗・ルーム・女の子','顧客','コース','売上','状態','操作'].map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{monthRows.map((b)=><tr key={b.id}><td>{b.booking_date}<small>{b.start_time?.slice(0,5)}</small></td><td>{b.resort_stores?.name} ルーム{b.room_number}<small>{b.resort_therapists?.name}</small></td><td>{b.resort_customers?.name}<small>{b.resort_customers?.phone}</small></td><td>{b.course_name}<small>{b.duration_minutes}分</small></td><td>{yen(b.total_amount)}<small>実質 {yen(b.total_amount-b.therapist_payout)}</small></td><td><span className={`admin-badge ${b.status}`}>{b.payment_method==='unpaid'&&b.status==='reserved'?'未会計':labels[b.status]}</span></td><td><div className="admin-row-actions"><button onClick={()=>{setInquiryMode(false);setInquiryId('');setBooking({...newBooking(),...b,...(brand==='marron'?{}:{therapist_payout:Number(b.therapist_payout||0)-Number(b.payout_adjustment||0)}),store_id:String(b.store_id),room_number:String(b.room_number),start_time:b.start_time?.slice(0,5)||''});scrollTo({top:0,behavior:'smooth'});}}>編集</button><button className="danger" onClick={()=>removeBooking(b.id)}>削除</button></div></td></tr>)}</tbody></table>{!monthRows.length&&<p className="admin-empty">対象月の予約はありません。</p>}</div><h3 className="admin-section-heading">不成約の問い合わせ（{monthInquiries.length}件）</h3><div className="admin-table-wrap admin-table-section"><table className="admin-table"><thead><tr>{['日付','店舗','顧客','女の子','理由・メモ','操作'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{monthInquiries.map(i=><tr key={i.id}><td>{i.inquiry_date}</td><td>{i.resort_stores?.name}</td><td>{i.resort_customers?.name||'未登録'}<small>{i.resort_customers?.phone||''}</small></td><td>{i.resort_therapists?.name||'未定'}</td><td>{i.reason}<small>{i.notes}</small></td><td><div className="admin-row-actions"><button onClick={()=>{setInquiryMode(true);setInquiryId(i.id);setBooking({...newBooking(),store_id:String(i.store_id),customer_id:i.customer_id||'',therapist_id:i.therapist_id||'',booking_date:i.inquiry_date,inquiry_reason:i.reason,notes:i.notes});scrollTo({top:0,behavior:'smooth'});}}>編集</button><button className="danger" onClick={()=>removeInquiry(i.id)}>削除</button></div></td></tr>)}</tbody></table>{!monthInquiries.length&&<p className="admin-empty">対象月の不成約はありません。</p>}</div></>}
-    {view === 'customers' && <><form className="admin-panel admin-form" onSubmit={saveCustomer}><div className="admin-panel-title"><h2>{customer.id?'顧客情報を編集':'顧客を新規登録'}</h2>{customer.id&&<button type="button" onClick={()=>setCustomer(newCustomer())}>新規登録に戻る</button>}</div><div className="admin-grid"><Input label="名前" value={customer.name} set={(v)=>setCustomer({...customer,name:v})}/><Input label="電話番号" type="tel" value={customer.phone} set={(v)=>setCustomer({...customer,phone:v})}/><Input label="LINE名（任意）" required={false} value={customer.line_name||''} set={(v)=>setCustomer({...customer,line_name:v})}/><label className="admin-switch"><input type="checkbox" checked={customer.is_blocked} onChange={(e)=>setCustomer({...customer,is_blocked:e.target.checked})}/>要注意・受付不可</label></div><CustomerBrands value={customer} set={setCustomer}/><label>接客メモ<textarea rows="3" value={customer.notes} onChange={(e)=>setCustomer({...customer,notes:e.target.value})}/></label><label>注意事項<textarea rows="3" value={customer.caution} onChange={(e)=>setCustomer({...customer,caution:e.target.value})}/></label><button className="admin-primary" disabled={saving}>顧客情報を保存</button></form><div className="admin-toolbar"><input placeholder="名前・電話番号・LINE名で検索" value={search} onChange={(e)=>setSearch(e.target.value)}/></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr>{['顧客','電話番号','来店','最終来店','累計利用額','操作'].map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{customerRows.map((c)=><tr key={c.id} className={c.is_blocked?'blocked':''}><td><strong>{c.name}</strong>{c.is_blocked&&<span className="admin-badge danger">要注意</span>}<small>{c.line_name? `LINE: ${c.line_name}`:''}</small></td><td>{c.phone}</td><td>{c.visits}回</td><td>{c.last}</td><td>{yen(c.total)}</td><td><button onClick={()=>{setCustomer({...blankCustomer,...c});scrollTo({top:0,behavior:'smooth'});}}>編集</button></td></tr>)}</tbody></table></div></>}
+    {view === 'customers' && <><form className="admin-panel admin-form" onSubmit={saveCustomer}><div className="admin-panel-title"><h2>{customer.id?'顧客情報を編集':'顧客を新規登録'}</h2>{customer.id&&<button type="button" onClick={()=>setCustomer(newCustomer())}>新規登録に戻る</button>}</div><div className="admin-grid"><Input label="名前" value={customer.name} set={(v)=>setCustomer({...customer,name:v})}/><Input label="電話番号" type="tel" value={customer.phone} set={(v)=>setCustomer({...customer,phone:v})}/><Input label="LINE名（任意）" required={false} value={customer.line_name||''} set={(v)=>setCustomer({...customer,line_name:v})}/><label className="admin-switch"><input type="checkbox" checked={customer.is_blocked} onChange={(e)=>setCustomer({...customer,is_blocked:e.target.checked})}/>要注意・受付不可</label></div><CustomerBrands value={customer} set={setCustomer}/><label>接客メモ<textarea rows="3" value={customer.notes} onChange={(e)=>setCustomer({...customer,notes:e.target.value})}/></label><label>注意事項<textarea rows="3" value={customer.caution} onChange={(e)=>setCustomer({...customer,caution:e.target.value})}/></label><button className="admin-primary" disabled={saving}>顧客情報を保存</button></form><div className="admin-toolbar"><input placeholder="名前・電話番号・LINE名で検索" value={search} onChange={(e)=>setSearch(e.target.value)}/></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr>{['顧客','電話番号','利用店舗・来店','最終来店','累計利用額','操作'].map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{customerRows.map((c)=><tr key={c.id} className={c.is_blocked?'blocked':''}><td><strong>{c.name}</strong>{c.is_blocked&&<span className="admin-badge danger">要注意</span>}<small>{c.line_name? `LINE: ${c.line_name}`:''}</small></td><td>{c.phone}</td><td>MarroN {c.marronVisits}回<small>Resort-style {c.resortVisits}回</small></td><td>{c.last}</td><td>{yen(c.total)}<small>MarroN {yen(c.marronTotal)}／Resort-style {yen(c.resortTotal)}</small></td><td><button onClick={()=>{setCustomer({...blankCustomer,...c});scrollTo({top:0,behavior:'smooth'});}}>編集</button></td></tr>)}</tbody></table></div></>}
     {view === 'activity' && <><h2 className="admin-section-heading">本営業日のルーム稼働状況</h2><div className="admin-room-grid">{roomRows.map((room) => <article className={`admin-room-card ${room.active ? 'in-use' : ''}`} key={`${room.store.id}-${room.roomNumber}`}><div className="admin-room-card-head"><h3>{room.store.name.replace('店','')}ルーム{room.roomNumber}</h3><span>{room.active ? '利用中' : '空き'}</span></div>{room.active ? <><strong>{room.active.resort_therapists?.name}</strong><p>{room.active.start_time?.slice(0,5)}〜（{room.active.duration_minutes}分）</p><small>お客様：{room.active.resort_customers?.name}</small></> : <p className="admin-room-empty">現在は空いています</p>}{room.next && room.next.id !== room.active?.id && <p className="admin-room-next">次回 {room.next.start_time?.slice(0,5)}〜　{room.next.resort_therapists?.name}</p>}</article>)}</div><h2 className="admin-section-heading">女の子別 月間稼働</h2><Table head={['女の子','接客','施術時間','稼働率','売上','バック','指名','リピート']} rows={activity.map((t)=>[t.name,`${t.count}件`,`${t.minutes}分`,t.utilization===null?'—':`${t.utilization}%`,yen(t.sales),yen(t.payout),`${t.nomination}件`,`${t.repeat}件`])} /></>}
   </section>;
 }
@@ -309,5 +337,5 @@ function Select({ label, value, set, options }) { return <label>{label}<select r
 function Table({ head, rows }) { return <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{head.map((h)=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.map((v,j)=><td key={j}>{v}</td>)}</tr>)}</tbody></table></div>; }
 
 
-function CustomerBrands({ value, set }) { return <fieldset><legend>利用店舗（両方選択できます）</legend>{[['uses_marron','MarroN利用'],['uses_resort_style','Resort-style利用']].map(([key,label]) => <label key={key} className="admin-switch"><input type="checkbox" checked={Boolean(value[key])} onChange={e => set({...value,[key]:e.target.checked})}/>{label}</label>)}</fieldset>; }
+function CustomerBrands({ value, set }) { return <fieldset><legend>利用店舗の登録（予約時にも自動で記録）</legend>{[['uses_marron','MarroN利用'],['uses_resort_style','Resort-style利用']].map(([key,label]) => <label key={key} className="admin-switch"><input type="checkbox" checked={Boolean(value[key])} onChange={e => set({...value,[key]:e.target.checked})}/>{label}</label>)}</fieldset>; }
 
