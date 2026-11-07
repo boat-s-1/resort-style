@@ -17,27 +17,34 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
   const current=records.find(row=>row.schedule_id===selectedId);
   useEffect(()=>{
     const record=records.find(item=>item.schedule_id===selectedId);
-    setStatus(record?.status||'unrecorded');
+    setStatus(record?.status==='worked' && timeValue(record.actual_start_time)===timeValue(schedules.find(s=>s.id===selectedId)?.start_time) && timeValue(record.actual_end_time)===timeValue(schedules.find(s=>s.id===selectedId)?.end_time)
+      ? 'on_schedule' : record?.status||'unrecorded');
     setStart(timeValue(record?.actual_start_time));
     setEnd(timeValue(record?.actual_end_time));
     setNote(record?.note||'');
     if(selectedId)document.getElementById('attendance-editor')?.scrollIntoView({behavior:'smooth',block:'start'});
-  },[selectedId,records]);
+  },[selectedId,records,schedules]);
 
   function select(row) {
-    const record=records.find(item=>item.schedule_id===row.id);
     setSelectedId(row.id);
-    setStatus(record?.status||'unrecorded');
-    setStart(timeValue(record?.actual_start_time));
-    setEnd(timeValue(record?.actual_end_time));
-    setNote(record?.note||'');
     document.getElementById('attendance-editor')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function changeStatus(value) {
+    setStatus(value);
+    if(value==='on_schedule') {
+      setStart(timeValue(selected?.start_time));
+      setEnd(timeValue(selected?.end_time));
+    } else if(value==='worked') {
+      setStart(previous=>previous||timeValue(selected?.start_time));
+      setEnd(previous=>previous||timeValue(selected?.end_time));
+    }
   }
 
   async function save(event) {
     event.preventDefault();
     if(!selected||saving)return;
-    if(status==='worked'&&(!start||!end||start===end)){
+    if((status==='worked'||status==='on_schedule')&&(!start||!end||start===end)){
       notify('実際の開始・終了を別の時刻で入力してください。');return;
     }
     setSaving(true);
@@ -45,8 +52,8 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
       const table=supabase.from('resort_schedule_attendance');
       const query=status==='unrecorded'
         ? table.delete().eq('schedule_id',selected.id).select('schedule_id')
-        : table.upsert({schedule_id:selected.id,status,actual_start_time:status==='worked'?start:null,
-            actual_end_time:status==='worked'?end:null,note:note.trim()},{onConflict:'schedule_id'}).select('schedule_id');
+        : table.upsert({schedule_id:selected.id,status:status==='on_schedule'?'worked':status,actual_start_time:status==='worked'||status==='on_schedule'?start:null,
+            actual_end_time:status==='worked'||status==='on_schedule'?end:null,note:note.trim()},{onConflict:'schedule_id'}).select('schedule_id');
       const {data,error}=await query;
       if(error)throw error;
       if(status!=='unrecorded'&&!data?.length)throw new Error('保存結果を確認できませんでした。');
@@ -63,16 +70,17 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
       <h3>{selected.work_date}　{selected.resort_therapists?.name}　{selected.resort_stores?.name}</h3>
       <p>予定：{timeValue(selected.start_time)||'—'}〜{timeValue(selected.end_time)||'—'}</p>
       <div className="admin-grid">
-        <label>出勤状況<select value={status} onChange={e=>setStatus(e.target.value)}>
+        <label>出勤状況<select value={status} onChange={e=>changeStatus(e.target.value)}>
           <option value="unrecorded">未入力（予定時間で暫定計算）</option>
+          <option value="on_schedule" disabled={!selected.start_time||!selected.end_time}>予定通り（時刻を自動入力）</option>
           <option value="worked">出勤（実際の時刻を記録）</option>
           <option value="absent">当日欠勤（実働0分）</option>
         </select></label>
-        {status==='worked'&&<><label>実際の開始<input type="time" step="60" required value={start} onChange={e=>setStart(e.target.value)}/></label>
-        <label>実際の終了<input type="time" step="60" required value={end} onChange={e=>setEnd(e.target.value)}/></label></>}
+        {(status==='worked'||status==='on_schedule')&&<><label>実際の開始<input type="time" step="60" required value={start} onChange={e=>{setStart(e.target.value);setStatus('worked');}}/></label>
+        <label>実際の終了<input type="time" step="60" required value={end} onChange={e=>{setEnd(e.target.value);setStatus('worked');}}/></label></>}
       </div>
       {status!=='unrecorded'&&<label>備考（任意）<textarea maxLength={500} rows={2} value={note} onChange={e=>setNote(e.target.value)}/></label>}
-      {status==='worked'&&start&&end&&start!==end&&<p>実働：{attendanceDetails(selected,{status,actual_start_time:start,actual_end_time:end}).minutes}分
+      {(status==='worked'||status==='on_schedule')&&start&&end&&start!==end&&<p>実働：{attendanceDetails(selected,{status,actual_start_time:start,actual_end_time:end}).minutes}分
         {attendanceDetails(selected,{status,actual_start_time:start,actual_end_time:end}).late&&'／遅刻'}
         {attendanceDetails(selected,{status,actual_start_time:start,actual_end_time:end}).early&&'／早退'}</p>}
       <div className="admin-row-actions"><button className="admin-primary" type="submit" disabled={saving}>{saving?'保存中…':'出勤実績を保存'}</button>
