@@ -540,3 +540,11 @@ background:#1185fe;
 .mypage-login input { font-size: 16px; }
 .mypage-login > a { display: block; text-align: center; padding: 6px 0; color: #087181; }
 @media (max-width: 480px) { .mypage-login { padding: 24px 20px; } }
+
+.admin-booking-accordion { margin-top: 18px; border: 1px solid #e7d8c4; border-radius: 14px; background: #fff; overflow: hidden; }
+.admin-booking-accordion summary { cursor: pointer; padding: 18px 20px; font-size: 18px; font-weight: 700; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-booking-accordion summary::-webkit-details-marker { display: none; }
+.admin-booking-accordion summary::before { content: '▶'; font-size: 12px; margin-right: 4px; color: #896222; }
+.admin-booking-accordion[open] summary::before { content: '▼'; }
+.admin-booking-accordion summary span { margin-left: auto; font-size: 13px; font-weight: 400; color: #806a51; }
+.admin-booking-accordion .admin-table-section { margin-top: 0; }
