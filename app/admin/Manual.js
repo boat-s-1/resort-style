@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import styles from './Manual.module.css';
 
 const steps = {
@@ -65,7 +66,14 @@ function Guide({ id, number, title, path, items, defaultOpen = false }) {
 }
 
 export default function Manual() {
-  return <section className={styles.manual} aria-labelledby="manual-title">
+  const [section, setSection] = useState('admin');
+  return <section className={styles.manual} aria-label="スタッフ用マニュアル">
+    <nav className={styles.sectionTabs} aria-label="マニュアルの分類">
+      {[["admin", "管理画面"], ["reception", "受付"], ["media", "媒体"]].map(([key, label]) =>
+        <button key={key} type="button" aria-pressed={section === key} className={section === key ? styles.selected : ''} onClick={() => setSection(key)}>{label}</button>
+      )}
+    </nav>
+    {section === 'admin' && <div className={styles.content}>
     <div className="admin-panel">
       <p className={styles.eyebrow}>スタッフ用 操作ガイド</p>
       <h2 id="manual-title">管理画面マニュアル</h2>
@@ -96,5 +104,7 @@ export default function Manual() {
       </ul>
       <p className={styles.small}>保存に失敗した場合は、再入力する前に一覧に登録されていないか確認してください。問題が続く場合は管理者へ連絡してください。</p>
     </div>
+    </div>}
+    {section !== 'admin' && <div className={styles.empty} aria-label={section === 'reception' ? '受付マニュアル' : '媒体マニュアル'} />}
   </section>;
 }

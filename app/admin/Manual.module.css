@@ -26,3 +26,10 @@
   .guide summary { padding: 14px; gap: 10px; }
   .guide ol { padding: 4px 18px 16px 42px; }
 }
+
+.sectionTabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sectionTabs button { min-height: 48px; border: 0; border-radius: 10px; background: #eee9df; color: #6e625f; font-size: 15px; font-weight: 700; cursor: pointer; }
+.sectionTabs button.selected { background: #0c8c9e; color: #fff; }
+.sectionTabs button:focus-visible { outline: 2px solid #087181; outline-offset: 2px; }
+.content { display: grid; gap: 16px; }
+.empty { min-height: 220px; }
