@@ -428,6 +428,7 @@ background:#1185fe;
 .admin-header-actions { display: flex; align-items: center; gap: 10px; }
 .admin-header-actions a, .admin-header-actions button, .admin-panel-title button, .admin-person-card button, .admin-schedule-list button { border: 1px solid #d8c99e; border-radius: 8px; background: #fff; padding: 9px 12px; color: #69582e; cursor: pointer; text-decoration: none; font: 14px/1 sans-serif; }
 .admin-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.admin-store-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-main-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-subtabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
 .admin-subtabs button { min-height: 44px; border: 1px solid #d8c99e; border-radius: 9px; background: #fff; color: #69582e; font-weight: 700; cursor: pointer; }
