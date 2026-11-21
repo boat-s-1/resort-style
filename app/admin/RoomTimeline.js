@@ -62,7 +62,7 @@ export default function RoomTimeline({ stores, bookings, schedules }) {
     businessDate(row.work_date, row.start_time) === date
   );
   return <section className="admin-panel room-timeline-panel">
-    <div className="admin-panel-title"><h2>ルーム使用状況</h2><span>10:00〜翌5:00</span></div>
+    <div className="admin-panel-title"><h2>ルーム使用状況</h2><span>{date} 10:00〜{dayShift(date, 1)} 05:00</span></div>
     <div className="room-timeline-controls">
       <button type="button" onClick={() => setDate(dayShift(date, -1))}>前日</button>
       <label>営業日 <input type="date" value={date} onChange={event => event.target.value && setDate(event.target.value)} /></label>
