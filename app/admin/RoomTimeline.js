@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { bookingBusinessDate, japanBusinessDate } from '../../lib/businessDay.mjs';
+import { roomDisplayName } from '../../lib/roomDisplayName.mjs';
 
 const DAY_MINUTES = 19 * 60;
 const dayShift = (date, offset) => new Date(Date.parse(date + 'T00:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
@@ -75,7 +76,7 @@ export default function RoomTimeline({ stores, bookings, schedules }) {
         <div className="room-timeline-name room-timeline-heading">店舗・ルーム</div>
         <div className="room-timeline-hours">{hours.map((hour, index) => <span key={index} style={{ left: (index / 19 * 100) + '%' }}>{String(hour).padStart(2, '0')}:00</span>)}</div>
         {rooms.map(({ store, room, shifts, items, levels }) => <div className="room-timeline-row" key={store.id + '-' + room}>
-          <div className="room-timeline-name">{store.name} ルーム{room}</div>
+          <div className="room-timeline-name">{roomDisplayName(store.id, room, `${store.name} ルーム${room}`)}</div>
           <div className="room-timeline-track" style={{ height: 42 + levels * 43 }}>
             {shifts.map(row => <div key={row.id} className="room-timeline-shift" style={{ left: (row.span.left / DAY_MINUTES * 100) + '%', width: ((row.span.right - row.span.left) / DAY_MINUTES * 100) + '%' }} title={'出勤予定 ' + (row.resort_therapists?.name || '') + ' ' + row.start_time?.slice(0,5) + '〜' + row.end_time?.slice(0,5)}>{row.resort_therapists?.name || '出勤'}</div>)}
             {items.map(row => <div key={row.id} className={'room-timeline-booking ' + (row.status === 'completed' ? 'completed' : 'reserved')} style={{ left: (row.left / DAY_MINUTES * 100) + '%', width: ((row.right - row.left) / DAY_MINUTES * 100) + '%', top: 38 + row.level * 43 }} title={labelTime(row.left) + '〜' + labelTime(row.right) + ' ' + (row.resort_therapists?.name || '') + ' ' + (row.resort_customers?.name || '')}>{labelTime(row.left)} {row.resort_therapists?.name || '予約'}</div>)}
