@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import InterviewQuestionnaire from './InterviewQuestionnaire';
 
 const bucket = 'resort-interview-documents';
 const empty = { id: '', interview_date: '', store: '', interviewer: '', full_name: '', age: '', residence: '', desired_monthly_income: '', work_days: '', training_at: '', first_work_date: '', notes: '', photo_path: null, identity_path: null };
@@ -10,6 +11,17 @@ const accepted = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
 
 export default function Interviews() {
+  const [section, setSection] = useState('sheet');
+  return <>
+    <nav className="admin-tabs" aria-label="面接の項目">
+      <button type="button" className={section === 'sheet' ? 'active' : ''} aria-pressed={section === 'sheet'} onClick={() => setSection('sheet')}>面接シート</button>
+      <button type="button" className={section === 'questionnaire' ? 'active' : ''} aria-pressed={section === 'questionnaire'} onClick={() => setSection('questionnaire')}>面接アンケート</button>
+    </nav>
+    {section === 'sheet' ? <InterviewSheet /> : <InterviewQuestionnaire />}
+  </>;
+}
+
+function InterviewSheet() {
   const [records, setRecords] = useState([]);
   const [form, setForm] = useState(empty);
   const [photo, setPhoto] = useState(null);
