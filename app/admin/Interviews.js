@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
 const bucket = 'resort-interview-documents';
-const empty = { id: '', interview_date: '', interviewer: '', full_name: '', age: '', residence: '', photo_path: null, identity_path: null };
+const empty = { id: '', interview_date: '', store: '', interviewer: '', full_name: '', age: '', residence: '', desired_monthly_income: '', work_days: '', training_at: '', first_work_date: '', notes: '', photo_path: null, identity_path: null };
+const stores = ['MarroN', 'RS豊橋', 'RS名古屋', 'RS安城'];
 const accepted = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
 
@@ -20,7 +21,7 @@ export default function Interviews() {
 
   const refresh = useCallback(async () => {
     const { data, error } = await supabase.from('resort_interviews')
-      .select('id,interview_date,interviewer,full_name,age,residence,photo_path,identity_path')
+      .select('id,interview_date,store,interviewer,full_name,age,residence,desired_monthly_income,work_days,training_at,first_work_date,notes,photo_path,identity_path')
       .order('interview_date', { ascending: false }).order('created_at', { ascending: false });
     if (error) throw error;
     setRecords(data || []);
@@ -41,7 +42,7 @@ export default function Interviews() {
   }
 
   function edit(row) {
-    setForm({ ...row, age: String(row.age) });
+    setForm({ ...row, age: String(row.age), store: row.store || '', desired_monthly_income: row.desired_monthly_income == null ? '' : String(row.desired_monthly_income), work_days: row.work_days || '', training_at: row.training_at ? row.training_at.slice(0, 16) : '', first_work_date: row.first_work_date || '', notes: row.notes || '' });
     setPhoto(null);
     setIdentity(null);
     setFileKey(value => value + 1);
@@ -74,6 +75,12 @@ export default function Interviews() {
       if (newIdentity) uploaded.push(newIdentity);
       const payload = {
         interview_date: form.interview_date,
+        store: form.store || null,
+        desired_monthly_income: form.desired_monthly_income === '' ? null : Number(form.desired_monthly_income),
+        work_days: form.work_days.trim(),
+        training_at: form.training_at || null,
+        first_work_date: form.first_work_date || null,
+        notes: form.notes.trim(),
         interviewer: form.interviewer.trim(),
         full_name: form.full_name.trim(),
         age: Number(form.age),
@@ -134,10 +141,16 @@ export default function Interviews() {
       <p>MarroN・Resort-style共通の面接記録です。添付は管理者だけが取得できます。</p>
       <div className="admin-grid">
         <label>日付<input type="date" value={form.interview_date} onChange={event => setForm({ ...form, interview_date: event.target.value })} required /></label>
+        <label style={{ gridColumn: '1 / -1' }}>店舗<select required value={form.store} onChange={event => setForm({ ...form, store: event.target.value })}><option value="">選択してください</option>{stores.map(store => <option key={store} value={store}>{store}</option>)}</select></label>
         <label>担当者<input value={form.interviewer} onChange={event => setForm({ ...form, interviewer: event.target.value })} maxLength={120} required /></label>
         <label>氏名<input value={form.full_name} onChange={event => setForm({ ...form, full_name: event.target.value })} maxLength={120} required /></label>
         <label>年齢<input type="number" min="1" max="120" value={form.age} onChange={event => setForm({ ...form, age: event.target.value })} required /></label>
         <label>住まい<input value={form.residence} onChange={event => setForm({ ...form, residence: event.target.value })} maxLength={300} required /></label>
+        <label>希望月収（円）<input type="number" min="0" step="1000" value={form.desired_monthly_income} onChange={event => setForm({ ...form, desired_monthly_income: event.target.value })} /></label>
+        <label>勤務日<input value={form.work_days} onChange={event => setForm({ ...form, work_days: event.target.value })} maxLength={300} placeholder="例：週3日、月・水・金" /></label>
+        <label>講習日時<input type="datetime-local" value={form.training_at} onChange={event => setForm({ ...form, training_at: event.target.value })} /></label>
+        <label>初回勤務日<input type="date" value={form.first_work_date} onChange={event => setForm({ ...form, first_work_date: event.target.value })} /></label>
+        <label style={{ gridColumn: '1 / -1' }}>その他記入欄<textarea rows={4} value={form.notes} onChange={event => setForm({ ...form, notes: event.target.value })} maxLength={5000} /></label>
         <label>写真添付<input key={`photo-${fileKey}`} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={event => setPhoto(event.target.files?.[0] || null)} />{form.photo_path && <small>登録済み（変更する場合は新しいファイルを選択）</small>}</label>
         <label>身分証添付<input key={`identity-${fileKey}`} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={event => setIdentity(event.target.files?.[0] || null)} />{form.identity_path && <small>登録済み（変更する場合は新しいファイルを選択）</small>}</label>
       </div>
@@ -149,9 +162,9 @@ export default function Interviews() {
       <h2>登録済みの面接</h2>
       {loading ? <p>読み込み中…</p> : records.length === 0 ? <p className="admin-empty">面接記録はまだありません。</p> :
         <div className="admin-table-wrap"><table className="admin-table">
-          <thead><tr><th>日付</th><th>氏名</th><th>年齢</th><th>住まい</th><th>担当者</th><th>添付</th><th>操作</th></tr></thead>
+          <thead><tr><th>日付</th><th>店舗</th><th>氏名</th><th>年齢</th><th>住まい</th><th>担当者</th><th>添付</th><th>操作</th></tr></thead>
           <tbody>{records.map(row => <tr key={row.id}>
-            <td>{row.interview_date}</td><td>{row.full_name}</td><td>{row.age}</td><td>{row.residence}</td><td>{row.interviewer}</td>
+            <td>{row.interview_date}</td><td>{row.store || '—'}</td><td>{row.full_name}</td><td>{row.age}</td><td>{row.residence}</td><td>{row.interviewer}</td>
             <td><div className="admin-row-actions">
               {row.photo_path && <button type="button" disabled={busy} onClick={() => download(row.photo_path, '写真')}>写真を保存</button>}
               {row.identity_path && <button type="button" disabled={busy} onClick={() => download(row.identity_path, '身分証')}>身分証を保存</button>}
