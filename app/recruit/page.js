@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const lineUrl = 'https://line.me/R/ti/p/%40999csrjr';
+const lineUrl = 'https://line.me/R/ti/p/%40960zetek';
 
 const payRows = [
   ['ノーマル', '60分', '10,000円', '5,000円'],
