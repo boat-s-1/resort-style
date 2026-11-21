@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import MarronBookingFields from './MarronBookingFields';
-import { bookingBusinessDate, businessDate, inBusinessHours, japanBusinessDate, japanTimeStamp } from '../../lib/businessDay.mjs';
+import { bookingBusinessDate, inBusinessHours, japanBusinessDate, japanTimeStamp } from '../../lib/businessDay.mjs';
 import ExpensesPanel from './ExpensesPanel';
 import RoomTimeline from './RoomTimeline';
 import customerSearch from '../../lib/customerSearch.cjs';
@@ -143,7 +143,7 @@ export default function Operations({ stores, allStores, therapists, schedules, a
   const metrics = {
     today: bookings.filter((b) => bookingBusinessDate(b) === todayBusiness && inBusinessHours(b.start_time) && b.status === 'completed').reduce((s, b) => s + b.total_amount, 0),
     unpaid: monthRows.filter((b) => b.payment_method === 'unpaid' && !['cancelled', 'no_show'].includes(b.status)).length,
-    workers: new Set(schedules.filter((s) => businessDate(s.work_date, s.start_time) === todayBusiness).map((s) => s.therapist_id)).size,
+    workers: new Set(schedules.filter((s) => s.work_date === todayBusiness).map((s) => s.therapist_id)).size,
   };
   const storeRows = stores.map((s) => {
     const rows = completed.filter((b) => b.store_id === s.id);
@@ -157,7 +157,7 @@ export default function Operations({ stores, allStores, therapists, schedules, a
   const activity = therapists.map((t) => {
     const rows = completed.filter((b) => b.therapist_id === t.id);
     const minutes = rows.reduce((n, b) => n + b.duration_minutes, 0);
-    const shifts=schedules.filter(s=>s.therapist_id===t.id && businessDate(s.work_date,s.start_time).startsWith(month));
+    const shifts=schedules.filter(s=>s.therapist_id===t.id && s.work_date.startsWith(month));
     const attended=shifts.map(s=>attendanceDetails(s,attendance.find(a=>a.schedule_id===s.id)));
     const workMinutes=attended.reduce((n,a)=>n+a.minutes,0);
     const pending=attended.filter(a=>!a.recorded).length;
