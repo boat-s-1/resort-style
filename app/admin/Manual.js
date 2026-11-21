@@ -64,13 +64,12 @@ function Guide({ id, number, title, path, items, defaultOpen = false }) {
   </details>;
 }
 
-export default function Manual({ brand }) {
-  const brandName = brand === 'marron' ? 'MarroN' : 'Resort-style';
+export default function Manual() {
   return <section className={styles.manual} aria-labelledby="manual-title">
     <div className="admin-panel">
       <p className={styles.eyebrow}>スタッフ用 操作ガイド</p>
       <h2 id="manual-title">管理画面マニュアル</h2>
-      <p>受付から会計、出勤管理、サイト更新までを順番に確認できます。現在の管理店舗は<strong>{brandName}</strong>です。入力前に画面上部の店舗タブを確認してください。</p>
+      <p>MarroNとResort-style共通の操作ガイドです。受付から会計、出勤管理、サイト更新までを順番に確認できます。作業するときは画面上部で対象店舗を選び、管理中の店舗名を確認してください。</p>
       <div className={styles.note}><strong>営業日のルール</strong><span>毎日10:00〜翌05:00。出勤予定の「営業日」は翌朝05:00までを含みます。予約の「日付」は実際のカレンダー日付を入力します。</span></div>
       <nav className={styles.shortcuts} aria-label="マニュアルの項目">
         {[
