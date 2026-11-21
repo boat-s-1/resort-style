@@ -54,3 +54,12 @@
 .priceTable th { background: #f7f3ed; }
 .priceTable td:last-child { white-space: nowrap; }
 @media (max-width: 600px) { .faq { grid-template-columns: 1fr; } }
+
+.smsList { display: grid; gap: 14px; }
+.smsCard { padding: 16px; border: 1px solid #e5d7c5; border-radius: 10px; background: #fcfaf7; }
+.smsHead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.smsHead h3 { margin: 0; font-size: 1rem; }
+.smsHead button { min-height: 40px; padding: 7px 12px; border: 1px solid #d8c99e; border-radius: 8px; background: #fff; color: #69582e; font-weight: 700; cursor: pointer; }
+.smsHead button:hover, .smsHead button:focus-visible { background: #eaf8fa; }
+.smsText { margin: 16px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.copyStatus { margin: 8px 0 0; color: #087181; }
