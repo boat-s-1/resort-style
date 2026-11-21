@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { japanBusinessDate } from '../lib/businessDay.mjs';
+import { scheduleTimeRange } from '../lib/scheduleBusinessDay.mjs';
 import { useState, useEffect } from 'react';
 import { supabase, therapistImageUrl } from '../lib/supabase';
 
@@ -71,7 +72,7 @@ export default function Home() {
     if (!entry) return '-';
     const start = entry.start_time?.slice(0, 5);
     const end = entry.end_time?.slice(0, 5);
-    if (start && end) return `${start}〜${end}`;
+    if (start && end) return scheduleTimeRange(entry.start_time, entry.end_time);
     return start || entry.note || '出勤';
   };
 
