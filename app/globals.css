@@ -52,6 +52,7 @@ body {
 }
 
 .menu-trigger, .line-trigger {
+  text-decoration: none;
   font-size: 11px;
   color: #b89742;
   cursor: pointer;
