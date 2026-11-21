@@ -548,3 +548,31 @@ background:#1185fe;
 .admin-booking-accordion[open] summary::before { content: '▼'; }
 .admin-booking-accordion summary span { margin-left: auto; font-size: 13px; font-weight: 400; color: #806a51; }
 .admin-booking-accordion .admin-table-section { margin-top: 0; }
+
+/* Admin room occupancy: a fixed 19-hour business day, horizontally scrollable on phones. */
+.room-timeline-panel { margin: 0 0 20px; }
+.room-timeline-controls { display:flex; flex-wrap:wrap; align-items:end; gap:8px; margin-bottom:12px; }
+.room-timeline-controls label { display:grid; gap:4px; font-size:13px; }
+.room-timeline-controls input, .room-timeline-controls button { min-height:38px; padding:6px 10px; border:1px solid #d8c99e; border-radius:8px; background:#fff; color:#42372e; }
+.room-timeline-controls button { cursor:pointer; }
+.room-timeline-legend { font-size:12px; margin:8px 0 14px; line-height:1.8; }
+.room-timeline-legend span { padding:3px 7px; border-radius:5px; margin-right:6px; }
+.room-timeline-legend .reserved { background:#d8eef4; }
+.room-timeline-legend .completed { background:#d9f1e5; }
+.room-timeline-legend .shift { background:#fff2d7; }
+.room-timeline-scroll { overflow-x:auto; border:1px solid #e6ddcf; border-radius:9px; }
+.room-timeline-grid { min-width:1280px; display:grid; grid-template-columns:140px 1140px; }
+.room-timeline-heading, .room-timeline-hours { height:38px; background:#f8f4ef; border-bottom:1px solid #e6ddcf; }
+.room-timeline-name { position:sticky; left:0; z-index:2; display:flex; align-items:center; padding:6px 9px; width:140px; background:#fff; font-size:13px; font-weight:700; border-right:1px solid #e6ddcf; }
+.room-timeline-heading { background:#f8f4ef; }
+.room-timeline-hours { position:relative; }
+.room-timeline-hours span { position:absolute; top:9px; transform:translateX(4px); font-size:11px; white-space:nowrap; }
+.room-timeline-hours span:last-child { transform:translateX(-100%); }
+.room-timeline-row { display:contents; }
+.room-timeline-row .room-timeline-name, .room-timeline-track { border-bottom:1px solid #eee5d8; }
+.room-timeline-track { position:relative; background:repeating-linear-gradient(to right,#fff 0,#fff 59px,#eee5d8 59px,#eee5d8 60px); }
+.room-timeline-shift, .room-timeline-booking { position:absolute; box-sizing:border-box; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; padding:5px 6px; border-radius:5px; font-size:11px; }
+.room-timeline-shift { top:6px; height:25px; background:#fff2d7; border:1px solid #d9b978; color:#5d4219; }
+.room-timeline-booking { height:36px; line-height:25px; border:1px solid #84b8c3; background:#d8eef4; color:#164e5c; font-weight:700; }
+.room-timeline-booking.completed { background:#d9f1e5; border-color:#8abfa4; color:#255d42; }
+.room-timeline-unassigned { margin-top:12px; font-size:13px; line-height:1.6; }
