@@ -89,7 +89,7 @@ function ReceptionManual() {
           <li><strong>開始時間を伺う</strong><span>「お時間は何時からをお考えでしょうか？」　すぐの希望なら、到着予定時刻も伺います。</span></li>
           <li><strong>指名を伺う</strong><span>「セラピストのご指名はございましたでしょうか？」　指名がなければ希望の時間に案内できるセラピストを確認します。</span></li>
           <li><strong>コースを伺う</strong><span>「コース・コース時間はいかがなさいましょう？」　迷われた場合は下の説明を参考にします。</span></li>
-          <li><strong>空き・料金を確認する</strong><span>ルームとセラピストの空き、コース料金と指名料などを管理画面で確認し、「料金は〇〇円になります」とお伝えします。</span></li>
+          <li><strong>空き・料金を確認する</strong><span>ルームとセラピストの空き、コース料金と指名料などを確認します。ルーム料金500円も含めたご案内額を確認し、「料金は〇〇円になります」とお伝えします。</span></li>
           <li><strong>SMSを案内する</strong><span>送信先の電話番号を確認し、「詳しい住所などのご案内をショートメッセージにてお送りいたしますので、ご確認をお願いいたします」とお伝えします。</span></li>
         </ol>
       </div>
@@ -120,12 +120,12 @@ function ReceptionManual() {
       </div>
       <div className="admin-panel">
         <h2>コース料金の確認表</h2>
-        <p>以下は基本のコース料金です。指名や延長、割引・割増がある場合は、予約・会計画面で合計額を確認してからお伝えください。</p>
+        <p>以下は基本のコース料金です。指名や延長、割引・割増とルーム料金500円を含めた額を確認してからお伝えください。現行の予約・会計画面ではルーム料金は自動加算されません。</p>
         <div className={styles.priceScroll}><table className={styles.priceTable}>
           <thead><tr><th scope="col">コース</th><th scope="col">時間</th><th scope="col">料金</th></tr></thead>
           <tbody>{resortPrices.map(([course, time, price]) => <tr key={course + time}><td>{course}</td><td>{time}</td><td>{price}</td></tr>)}</tbody>
         </table></div>
-        <p className={styles.small}>指名料：F 0円／P500 500円／P1000 1,000円／R1000 1,000円／R2000 2,000円。延長：20分 4,000円／40分 8,000円／60分 12,000円。</p>
+        <p className={styles.small}>指名料：F 0円／P500 500円／P1000 1,000円／R1000 1,000円／R2000 2,000円。延長：20分 4,000円／40分 8,000円／60分 12,000円。ルーム料金：500円。</p>
       </div>
       <div className="admin-panel">
         <h2>電話を切る前・切った後</h2>
