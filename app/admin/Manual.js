@@ -72,8 +72,35 @@ const resortPrices = [
   ['マイクロ', '90分', '22,000円'], ['マイクロ', '120分', '27,000円']
 ];
 
+const smsTemplates = [
+  {
+    key: 'received',
+    title: '受付後に送るSMS',
+    text: `お世話になっております。リゾートスタイルです。
+本日、中郷町116-5MKマンションでのご案内になります。
+お車でお越しの場合、花中町175（プラスパーク花中町第一）が3時間100円で1番近いパーキングになります。
+
+女の子の準備が整いましたら、お部屋番号をお送りしますのでお近くでお待ちください。`
+  },
+  {
+    key: 'ready',
+    title: '案内時に送るSMS',
+    text: `お世話になります。リゾートスタイルです。
+
+女の子の準備が整いました。
+本日MKマンション603号でのご案内になります。
+到着されましたら、インターホンにてお知らせください。
+女の子が対応させて頂きます。`
+  }
+];
+
 function ReceptionManual() {
   const [brand, setBrand] = useState('resort');
+  const [copied, setCopied] = useState('');
+  async function copySms(key, text) {
+    try { await navigator.clipboard.writeText(text); setCopied(key); }
+    catch { setCopied('error-' + key); }
+  }
   return <div className={styles.content}>
     <nav className={styles.brandTabs} aria-label="受付マニュアルの店舗">
       <button type="button" aria-pressed={brand === 'marron'} className={brand === 'marron' ? styles.selected : ''} onClick={() => setBrand('marron')}>MarroN</button>
@@ -134,6 +161,21 @@ function ReceptionManual() {
           <li>SMSの送信先電話番号を確認します。住所や駐車場は店舗指定の案内文で送ります。</li>
           <li>管理画面のResort-styleで予約を登録し、SMS送信後に内容と送信先を確認します。</li>
         </ul>
+      </div>
+      <div className="admin-panel">
+        <h2>SMS定型文</h2>
+        <p>受付後と、女の子の準備が整った案内時にそれぞれ送ります。送信前に宛先と文面を確認してください。</p>
+        <div className={styles.smsList}>
+          {smsTemplates.map(template => <section key={template.key} className={styles.smsCard}>
+            <div className={styles.smsHead}>
+              <h3>【{template.title}】</h3>
+              <button type="button" onClick={() => copySms(template.key, template.text)}>文面をコピー</button>
+            </div>
+            <p className={styles.smsText}>{template.text}</p>
+            {copied === template.key && <p role="status" className={styles.copyStatus}>コピーしました</p>}
+            {copied === 'error-' + template.key && <p role="alert" className={styles.copyStatus}>コピーできませんでした。文面を選択してコピーしてください。</p>}
+          </section>)}
+        </div>
       </div>
     </>}
   </div>;
