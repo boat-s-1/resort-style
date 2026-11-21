@@ -33,3 +33,24 @@
 .sectionTabs button:focus-visible { outline: 2px solid #087181; outline-offset: 2px; }
 .content { display: grid; gap: 16px; }
 .empty { min-height: 220px; }
+
+.brandTabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.brandTabs button { min-height: 44px; border: 1px solid #ddcfba; border-radius: 9px; background: #fff; color: #69582e; font-size: 15px; font-weight: 700; cursor: pointer; }
+.brandTabs button.selected { border-color: #0c8c9e; background: #eaf8fa; color: #087181; }
+.brandTabs button:focus-visible { outline: 2px solid #087181; outline-offset: 2px; }
+.callSteps { display: grid; gap: 10px; padding-left: 25px; line-height: 1.75; }
+.callSteps li { padding: 8px 4px; }
+.callSteps li strong { display: block; color: #087181; }
+.callSteps li span { display: block; }
+.script { margin: 12px 0; padding: 12px 20px; border-left: 4px solid #0c8c9e; background: #f3f9f9; line-height: 1.8; }
+.script p { margin: 8px 0; }
+.faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.faq article { padding: 14px 16px; border: 1px solid #eee2d3; border-radius: 10px; line-height: 1.75; }
+.faq h3 { margin: 0 0 8px; font-size: 1rem; }
+.faq p { margin: 0 0 6px; }
+.priceScroll { overflow-x: auto; }
+.priceTable { width: 100%; border-collapse: collapse; text-align: left; }
+.priceTable th, .priceTable td { padding: 11px 14px; border-bottom: 1px solid #eee2d3; }
+.priceTable th { background: #f7f3ed; }
+.priceTable td:last-child { white-space: nowrap; }
+@media (max-width: 600px) { .faq { grid-template-columns: 1fr; } }
