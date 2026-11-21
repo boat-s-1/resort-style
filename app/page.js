@@ -84,7 +84,7 @@ return (
           <div className="header-logo-sub">Luxury Relaxation Salon</div>
           <div className="header-logo-main">Resort-Style</div>
         </div>
-        <div className="line-trigger"><div>💬</div><div>LINE</div></div>
+        <a className="line-trigger" href="https://line.me/R/ti/p/%40960zetek" target="_blank" rel="noopener noreferrer" aria-label="LINEで友だち追加"><div>💬</div><div>LINE</div></a>
       </header>
 
       {currentPage === 'home' ? (
@@ -444,7 +444,7 @@ return (
     <div className="dual-footer-bar">
 
   <a
-    href="https://line.me/R/ti/p/%40999csrjr"
+    href="https://line.me/R/ti/p/%40960zetek"
     target="_blank"
     rel="noopener noreferrer"
     className="footer-btn-line"
