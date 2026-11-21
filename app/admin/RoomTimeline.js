@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { bookingBusinessDate, businessDate, japanBusinessDate } from '../../lib/businessDay.mjs';
+import { bookingBusinessDate, japanBusinessDate } from '../../lib/businessDay.mjs';
 
 const DAY_MINUTES = 19 * 60;
 const dayShift = (date, offset) => new Date(Date.parse(date + 'T00:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
@@ -48,7 +48,7 @@ export default function RoomTimeline({ stores, bookings, schedules }) {
   const rooms = stores.flatMap(store => [1, 2].map(room => {
     const shifts = schedules.filter(row =>
       row.store_id === store.id && Number(row.room_number) === room &&
-      businessDate(row.work_date, row.start_time) === date
+      row.work_date === date
     ).map(row => ({ ...row, span: shiftSegment(row) })).filter(row => row.span);
     const items = placeBookings(bookings.filter(row =>
       row.store_id === store.id && Number(row.room_number) === room &&
@@ -59,7 +59,7 @@ export default function RoomTimeline({ stores, bookings, schedules }) {
   }));
   const unassigned = schedules.filter(row =>
     stores.some(store => store.id === row.store_id) && !row.room_number &&
-    businessDate(row.work_date, row.start_time) === date
+    row.work_date === date
   );
   return <section className="admin-panel room-timeline-panel">
     <div className="admin-panel-title"><h2>ルーム使用状況</h2><span>{date} 10:00〜{dayShift(date, 1)} 05:00</span></div>

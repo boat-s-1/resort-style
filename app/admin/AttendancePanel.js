@@ -1,4 +1,5 @@
 'use client';
+import { scheduleTimeRange } from '../../lib/scheduleBusinessDay.mjs';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -71,8 +72,8 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
     <h2>出勤実績（遅刻・早退・当日欠勤）</h2>
     <p>登録済みの出勤から「実績を入力」を選びます。実際の時刻は1分単位で入力でき、日付をまたぐ終了は翌日として計算します。</p>
     {selected?<form onSubmit={save}>
-      <h3>{selected.work_date}　{selected.resort_therapists?.name}　{selected.resort_stores?.name}</h3>
-      <p>予定：{timeValue(selected.start_time)||'—'}〜{timeValue(selected.end_time)||'—'}</p>
+      <h3>営業日 {selected.work_date}　{selected.resort_therapists?.name}　{selected.resort_stores?.name}</h3>
+      <p>予定：{scheduleTimeRange(selected.start_time,selected.end_time)}</p>
       <div className="admin-grid">
         <label>出勤状況<select value={status} onChange={e=>changeStatus(e.target.value)}>
           <option value="unrecorded">未入力（予定時間で暫定計算）</option>
