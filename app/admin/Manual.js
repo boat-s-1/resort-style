@@ -65,6 +65,80 @@ function Guide({ id, number, title, path, items, defaultOpen = false }) {
   </details>;
 }
 
+
+const resortPrices = [
+  ['ノーマル', '60分', '10,000円'], ['ノーマル', '90分', '14,000円'], ['ノーマル', '120分', '18,000円'],
+  ['とろふわ', '90分', '18,000円'], ['とろふわ', '120分', '23,000円'],
+  ['マイクロ', '90分', '22,000円'], ['マイクロ', '120分', '27,000円']
+];
+
+function ReceptionManual() {
+  const [brand, setBrand] = useState('resort');
+  return <div className={styles.content}>
+    <nav className={styles.brandTabs} aria-label="受付マニュアルの店舗">
+      <button type="button" aria-pressed={brand === 'marron'} className={brand === 'marron' ? styles.selected : ''} onClick={() => setBrand('marron')}>MarroN</button>
+      <button type="button" aria-pressed={brand === 'resort'} className={brand === 'resort' ? styles.selected : ''} onClick={() => setBrand('resort')}>Resort-Style</button>
+    </nav>
+    {brand === 'marron' ? <div className={styles.empty} aria-label="MarroNの受付マニュアル" /> : <>
+      <div className="admin-panel">
+        <p className={styles.eyebrow}>Resort-Style ／ 電話受付</p>
+        <h2>電話を受けたときの流れ</h2>
+        <p>開始時間、セラピストの指名、コース内容と時間を伺い、空きと料金を確認してから、SMSで詳しい住所を案内します。</p>
+        <ol className={styles.callSteps}>
+          <li><strong>名乗る</strong><span>「お電話ありがとうございます。リゾートスタイルです。」</span></li>
+          <li><strong>開始時間を伺う</strong><span>「お時間は何時からをお考えでしょうか？」　すぐの希望なら、到着予定時刻も伺います。</span></li>
+          <li><strong>指名を伺う</strong><span>「セラピストのご指名はございましたでしょうか？」　指名がなければ希望の時間に案内できるセラピストを確認します。</span></li>
+          <li><strong>コースを伺う</strong><span>「コース・コース時間はいかがなさいましょう？」　迷われた場合は下の説明を参考にします。</span></li>
+          <li><strong>空き・料金を確認する</strong><span>ルームとセラピストの空き、コース料金と指名料などを管理画面で確認し、「料金は〇〇円になります」とお伝えします。</span></li>
+          <li><strong>SMSを案内する</strong><span>送信先の電話番号を確認し、「詳しい住所などのご案内をショートメッセージにてお送りいたしますので、ご確認をお願いいたします」とお伝えします。</span></li>
+        </ol>
+      </div>
+      <div className="admin-panel">
+        <h2>そのまま読める受付例</h2>
+        <blockquote className={styles.script}>
+          <p>お電話ありがとうございます。リゾートスタイルです。</p>
+          <p>お時間は何時からをお考えでしょうか？</p>
+          <p>セラピストのご指名はございましたでしょうか？</p>
+          <p>コース・コース時間はいかがなさいましょう？</p>
+          <p>空きを確認いたします。……料金は〇〇円になります。</p>
+          <p>では、詳しい住所などのご案内をショートメッセージにてお送りいたしますので、ご確認をお願いいたします。</p>
+        </blockquote>
+        <p className={styles.small}>〇〇円には、選択したコースや指名料などを反映した実際のご案内額を入れます。空きは確認してから確定してください。</p>
+      </div>
+      <div className="admin-panel">
+        <h2>よくある質問と答え方</h2>
+        <div className={styles.faq}>
+          <article><h3>「すぐ行きたい」</h3><p>「ルームは豊橋駅西口から徒歩5分ほど、ホテル・ユアーズ様の近くになります。どのくらいで到着されますか？」</p><p className={styles.small}>到着時刻を伺い、ルームとセラピストの空きを確認します。</p></article>
+          <article><h3>「駐車場はありますか？」</h3><p>「はい、ございます。駐車場のご案内もショートメッセージにてお送りいたします。」</p></article>
+          <article><h3>「何時から行けますか？」</h3><p>「空きを確認いたします。すぐご案内できる場合も、セラピストの準備に10〜15分ほどお時間をいただければと思います。」</p></article>
+          <article><h3>「何分がおすすめですか？」</h3><p>「60分ですと前面や鼠径部のお時間が短くなることもありますので、90分以上がおすすめです。」</p></article>
+          <article><h3>「何分コースが多いですか？」</h3><p>「90分コースが多く、おすすめです。ゆったりと堪能していただく場合も90分以上がおすすめです。」</p></article>
+          <article><h3>「通常コースは？」</h3><p>「指圧とオイルマッサージのコースです。」</p></article>
+          <article><h3>「とろふわコースは？」</h3><p>「通常のオイルを密着度の高いオイルに変更し、鼠径部の施術ではホイップを使用します。鼠径部のお時間も長めにお取りできます。」</p></article>
+          <article><h3>「マイクロコースは？」</h3><p>「とろふわコースの内容に、マイクロの衣装チェンジが付きます。」</p></article>
+        </div>
+      </div>
+      <div className="admin-panel">
+        <h2>コース料金の確認表</h2>
+        <p>以下は基本のコース料金です。指名や延長、割引・割増がある場合は、予約・会計画面で合計額を確認してからお伝えください。</p>
+        <div className={styles.priceScroll}><table className={styles.priceTable}>
+          <thead><tr><th scope="col">コース</th><th scope="col">時間</th><th scope="col">料金</th></tr></thead>
+          <tbody>{resortPrices.map(([course, time, price]) => <tr key={course + time}><td>{course}</td><td>{time}</td><td>{price}</td></tr>)}</tbody>
+        </table></div>
+        <p className={styles.small}>指名料：F 0円／P500 500円／P1000 1,000円／R1000 1,000円／R2000 2,000円。延長：20分 4,000円／40分 8,000円／60分 12,000円。</p>
+      </div>
+      <div className="admin-panel">
+        <h2>電話を切る前・切った後</h2>
+        <ul className={styles.checks}>
+          <li>開始時間と到着予定時刻、セラピスト、コース・時間、合計料金を復唱します。</li>
+          <li>SMSの送信先電話番号を確認します。住所や駐車場は店舗指定の案内文で送ります。</li>
+          <li>管理画面のResort-styleで予約を登録し、SMS送信後に内容と送信先を確認します。</li>
+        </ul>
+      </div>
+    </>}
+  </div>;
+}
+
 export default function Manual() {
   const [section, setSection] = useState('admin');
   return <section className={styles.manual} aria-label="スタッフ用マニュアル">
@@ -105,6 +179,7 @@ export default function Manual() {
       <p className={styles.small}>保存に失敗した場合は、再入力する前に一覧に登録されていないか確認してください。問題が続く場合は管理者へ連絡してください。</p>
     </div>
     </div>}
-    {section !== 'admin' && <div className={styles.empty} aria-label={section === 'reception' ? '受付マニュアル' : '媒体マニュアル'} />}
+    {section === 'reception' && <ReceptionManual />}
+    {section === 'media' && <div className={styles.empty} aria-label="媒体マニュアル" />}
   </section>;
 }
