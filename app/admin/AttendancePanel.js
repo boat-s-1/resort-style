@@ -9,7 +9,7 @@ import attendanceMath from '../../lib/attendance.cjs';
 const {attendanceDetails}=attendanceMath;
 const timeValue=value=>value?.slice(0,5)||'';
 
-export default function AttendancePanel({ schedules, records, selectedId, setSelectedId, onSaved, notify }) {
+export default function AttendancePanel({ schedules, records, selectedId, setSelectedId, onSaved, notify, onSchedule, shortcutSaving }) {
   const [status,setStatus]=useState('unrecorded');
   const [start,setStart]=useState('');
   const [end,setEnd]=useState('');
@@ -103,7 +103,11 @@ export default function AttendancePanel({ schedules, records, selectedId, setSel
           <td>{record?.status==='absent'?'当日欠勤':record?.status==='worked'
             ?`${timeValue(record.actual_start_time)}〜${timeValue(record.actual_end_time)}（${details.minutes}分）${details.late?' 遅刻':''}${details.early?' 早退':''}`
             :'未入力（予定ベース）'}</td>
-          <td><button type="button" onClick={()=>select(row)}>実績を入力</button></td></tr>;
+          <td><div className="admin-row-actions">
+            {!record && row.work_date <= today && row.start_time && row.end_time && row.start_time !== row.end_time &&
+              <button type="button" disabled={saving || shortcutSaving} onClick={() => onSchedule(row)}>予定通り</button>}
+            <button type="button" disabled={saving || shortcutSaving} onClick={()=>select(row)}>実績を入力</button>
+          </div></td></tr>;
       })}</tbody></table></div>
   </section>;
 }
