@@ -2,10 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { bookingBusinessDate, inBusinessHours, japanBusinessDate } from '../../lib/businessDay.mjs';
-import attendanceMath from '../../lib/attendance.cjs';
-
-const { attendanceDetails } = attendanceMath;
+import { japanBusinessDate } from '../../lib/businessDay.mjs';
+import { dateText, nextDate, firstOfMonth, emptyMetrics, selectStores, summarizeReport, toDate } from '../../lib/monthlyReport.mjs';
 const yen = value => value == null ? '—' : `¥${Number(value).toLocaleString('ja-JP')}`;
 const sections = [
   ['summary', '売上・給与・経費・利益'],
@@ -14,19 +12,6 @@ const sections = [
   ['breakdown', '新規・リピート・指名・コース別'],
   ['inquiries', '成約・不成約'],
 ];
-const toDate = value => new Date(`${value}T00:00:00Z`);
-const dateText = date => date.toISOString().slice(0, 10);
-const nextDate = value => dateText(new Date(toDate(value).getTime() + 86400000));
-const firstOfMonth = value => value.slice(0, 7) + '-01';
-const lastOfMonth = value => dateText(new Date(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)), 0)));
-const emptyMetrics = () => ({ count: 0, sales: 0, payout: 0, unknownSales: 0, unknownPayout: 0 });
-function addBooking(target, booking) {
-  target.count += 1;
-  if (booking.total_amount == null) target.unknownSales += 1;
-  else target.sales += Number(booking.total_amount);
-  if (booking.therapist_payout == null) target.unknownPayout += 1;
-  else target.payout += Number(booking.therapist_payout);
-}
 async function loadAll(table, fields, apply) {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {
@@ -38,59 +23,6 @@ async function loadAll(table, fields, apply) {
     if (!data || data.length < 1000) return rows;
   }
 }
-function summarize({ bookings, expenses, inquiries, schedules, attendance, therapists, start, end }) {
-  const completed = bookings.filter(b => b.status === 'completed' &&
-    inBusinessHours(b.start_time) && bookingBusinessDate(b) >= start && bookingBusinessDate(b) <= end);
-  const within = bookings.filter(b => inBusinessHours(b.start_time) &&
-    bookingBusinessDate(b) >= start && bookingBusinessDate(b) <= end);
-  const lost = inquiries.filter(i => i.inquiry_date >= start && i.inquiry_date <= end);
-  const total = emptyMetrics();
-  const daily = new Map();
-  const byTherapist = new Map(therapists.map(t => [t.id, { name: t.name, ...emptyMetrics(), minutes: 0, workMinutes: 0, pending: 0, shifts: 0, nomination: 0, repeat: 0 }]));
-  const courses = new Map();
-  for (const b of completed) {
-    addBooking(total, b);
-    const day = bookingBusinessDate(b);
-    if (!daily.has(day)) daily.set(day, emptyMetrics());
-    addBooking(daily.get(day), b);
-    if (!byTherapist.has(b.therapist_id)) byTherapist.set(b.therapist_id, { name: '登録済みセラピスト', ...emptyMetrics(), minutes: 0, workMinutes: 0, pending: 0, shifts: 0, nomination: 0, repeat: 0 });
-    const t = byTherapist.get(b.therapist_id);
-    addBooking(t, b);
-    t.minutes += Number(b.duration_minutes || 0);
-    t.nomination += Number(b.nomination_fee || 0) > 0 ? 1 : 0;
-    t.repeat += b.is_first_visit === false ? 1 : 0;
-    const name = b.course_name || 'コース未入力';
-    courses.set(name, (courses.get(name) || 0) + 1);
-  }
-  for (const s of schedules) {
-    const t = byTherapist.get(s.therapist_id);
-    if (!t || s.work_date < start || s.work_date > end) continue;
-    const details = attendanceDetails(s, attendance.get(s.id));
-    t.workMinutes += details.minutes;
-    t.pending += details.recorded ? 0 : 1;
-    t.shifts += 1;
-  }
-  const includedExpenses = [];
-  const undatedExpenses = [];
-  for (const e of expenses) {
-    if (e.is_archived) continue;
-    if (e.expense_date) {
-      if (e.expense_date >= start && e.expense_date <= end) includedExpenses.push(e);
-    } else if (firstOfMonth(e.expense_month + '-01') >= start && lastOfMonth(e.expense_month + '-01') <= end) {
-      includedExpenses.push(e);
-    } else if (e.expense_month >= start.slice(0, 7) && e.expense_month <= end.slice(0, 7)) {
-      undatedExpenses.push(e);
-    }
-  }
-  const expenseTotal = includedExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const unknown = total.unknownSales || total.unknownPayout || undatedExpenses.length;
-  const missingPayment = completed.filter(b => b.payment_method === 'unpaid').length;
-  return {
-    completed, within, lost, total, daily, byTherapist, courses, expenseTotal,
-    undatedExpenses, missingPayment, profit: unknown ? null : total.sales - total.payout - expenseTotal,
-  };
-}
-
 export default function MonthlyReport({ stores }) {
   const today = japanBusinessDate();
   const [scope, setScope] = useState('all');
@@ -106,9 +38,7 @@ export default function MonthlyReport({ stores }) {
     ['brand:resort-style', 'Resort-style全店'],
     ...stores.map(store => [`store:${store.id}`, store.name === 'MarroN' ? 'MarroN' : `Resort-style ${store.name}`]),
   ], [stores]);
-  const selectedStores = useMemo(() => stores.filter(s => scope === 'all' ||
-    (scope.startsWith('brand:') && s.brand_code === scope.slice(6)) ||
-    scope === `store:${s.id}`), [scope, stores]);
+  const selectedStores = useMemo(() => selectStores(stores, scope), [scope, stores]);
   const scopeLabel = options.find(([value]) => value === scope)?.[1] || '全店舗';
 
   function preset(mode) {
@@ -146,7 +76,7 @@ export default function MonthlyReport({ stores }) {
         if (attendanceError) throw attendanceError;
         for (const row of data || []) attendance.set(row.schedule_id, row);
       }
-      setReport({ start, end, scopeLabel, ...summarize({
+      setReport({ start, end, scopeLabel, ...summarizeReport({
         bookings, expenses, inquiries, schedules, attendance, therapists: therapistRows,
         start, end,
       }) });
@@ -207,7 +137,7 @@ export default function MonthlyReport({ stores }) {
         {selected('therapists') && <section><h3>セラピスト別成績・稼働</h3>
           <table><thead><tr><th>セラピスト</th><th>接客</th><th>売上</th><th>給与</th><th>施術</th><th>出勤</th><th>稼働率</th></tr></thead>
             <tbody>{Array.from(report.byTherapist.values()).filter(t => t.count || t.shifts).sort((a, b) => b.sales - a.sales).map(t =>
-              <tr key={t.name}><td>{t.name}</td><td>{t.count}件</td><td>{t.unknownSales ? '—' : yen(t.sales)}</td><td>{t.unknownPayout ? '—' : yen(t.payout)}</td><td>{t.minutes}分</td><td>{t.workMinutes}分{t.pending ? `（予定ベース${t.pending}件）` : ''}</td><td>{t.workMinutes ? `${Math.round(t.minutes / t.workMinutes * 100)}%${t.pending ? '（暫定）' : ''}` : '—'}</td></tr>)}</tbody>
+              <tr key={t.id}><td>{t.name}</td><td>{t.count}件</td><td>{t.unknownSales ? '—' : yen(t.sales)}</td><td>{t.unknownPayout ? '—' : yen(t.payout)}</td><td>{t.minutes}分</td><td>{t.workMinutes}分{t.pending ? `（予定ベース${t.pending}件）` : ''}</td><td>{t.workMinutes ? `${Math.round(t.minutes / t.workMinutes * 100)}%${t.pending ? '（暫定）' : ''}` : '—'}</td></tr>)}</tbody>
           </table><p>稼働率＝会計済み施術時間÷出勤実働時間。実績未入力の出勤は予定時間で暫定計算。出勤0分は「—」です。</p>
         </section>}
         {selected('breakdown') && <section><h3>来店とコース</h3>
