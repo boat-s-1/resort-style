@@ -19,15 +19,6 @@ const dateText = date => date.toISOString().slice(0, 10);
 const nextDate = value => dateText(new Date(toDate(value).getTime() + 86400000));
 const firstOfMonth = value => value.slice(0, 7) + '-01';
 const lastOfMonth = value => dateText(new Date(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)), 0)));
-const monthKeys = (start, end) => {
-  const values = [];
-  let current = firstOfMonth(start);
-  while (current <= end) {
-    values.push(current.slice(0, 7));
-    current = dateText(new Date(Date.UTC(Number(current.slice(0, 4)), Number(current.slice(5, 7)), 1)));
-  }
-  return values;
-};
 const emptyMetrics = () => ({ count: 0, sales: 0, payout: 0, unknownSales: 0, unknownPayout: 0 });
 function addBooking(target, booking) {
   target.count += 1;
@@ -136,12 +127,11 @@ export default function MonthlyReport({ stores }) {
     setBusy(true); setError(''); setReport(null);
     try {
       const ids = selectedStores.map(s => s.id);
-      const months = monthKeys(start, end);
       const [bookings, expenses, inquiries, schedules, therapistRows] = await Promise.all([
         loadAll('resort_bookings', 'id,store_id,therapist_id,booking_date,start_time,status,total_amount,therapist_payout,duration_minutes,nomination_fee,is_first_visit,course_name,payment_method',
           q => q.in('store_id', ids).gte('booking_date', start).lte('booking_date', nextDate(end))),
         loadAll('resort_expenses', 'id,store_id,expense_month,expense_date,amount,is_archived',
-          q => q.in('store_id', ids).gte('expense_month', months[0]).lte('expense_month', months.at(-1))),
+          q => q.in('store_id', ids)),
         loadAll('resort_booking_inquiries', 'id,store_id,inquiry_date',
           q => q.in('store_id', ids).gte('inquiry_date', start).lte('inquiry_date', end)),
         loadAll('resort_schedules', 'id,store_id,therapist_id,work_date,start_time,end_time',
@@ -165,7 +155,8 @@ export default function MonthlyReport({ stores }) {
     } finally { setBusy(false); }
   }
   const selected = key => included.includes(key);
-  const dailyRows = report ? Array.from(report.daily).sort(([a], [b]) => a.localeCompare(b)) : [];
+  const dailyRows = [];
+  if (report) for (let day = report.start; day <= report.end; day = nextDate(day)) dailyRows.push([day, report.daily.get(day) || emptyMetrics()]);
   const maxSales = Math.max(1, ...dailyRows.map(([, row]) => row.sales));
   return <section className="monthly-report">
     <form className="admin-panel admin-form monthly-report-controls" onSubmit={run}>
