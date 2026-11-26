@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { summarizeReport, selectStores } from '../lib/monthlyReport.mjs';
+import { summarizeReport, selectStores, nominationGroup } from '../lib/monthlyReport.mjs';
 
 const stores = [
   { id: 1, brand_code: 'resort-style' },
@@ -83,4 +83,53 @@ test('null amounts remain unknown rather than zero', () => {
   assert.equal(missing.total.unknownSales, 1);
   assert.equal(missing.total.unknownPayout, 1);
   assert.equal(missing.profit, null);
+});
+
+test('F/P/R counts use saved codes, keep missing codes unknown, and do not infer from fees', () => {
+  const bookings = [
+    { ...booking('f', 1, '2026-11-01', '10:00', 'completed', 10000, 6000), nomination_code: 'なし', nomination_fee: 0 },
+    { ...booking('p', 1, '2026-11-01', '11:00', 'completed', 12000, 7000), nomination_code: 'P500' },
+    { ...booking('r', 1, '2026-11-01', '12:00', 'completed', 14000, 8000), nomination_code: 'R2000' },
+    { ...booking('unknown', 1, '2026-11-01', '13:00', 'completed', 15000, 9000), nomination_code: null, nomination_fee: 2000 },
+    { ...booking('reserved', 1, '2026-11-01', '14:00', 'reserved', 15000, 9000), nomination_code: 'R1000' },
+  ];
+  const t = report('store:1', '2026-11-01', '2026-11-01', { bookings }).byTherapist.get('r');
+  assert.deepEqual(t.nominationCounts, { F: 1, P: 1, R: 1, unknown: 1 });
+  assert.equal(t.sales - t.payout, 21000);
+  assert.equal(nominationGroup('F'), 'F');
+  assert.equal(nominationGroup('bad-code'), 'unknown');
+});
+
+test('expense category, purpose, store and details follow scope and partial-date rule', () => {
+  const expenses = [
+    { id: 'dated', store_id: 1, expense_date: '2026-11-02', expense_month: '2026-11', category: 'transport', purpose: '電車', amount: 500, is_archived: false },
+    { id: 'zero', store_id: 1, expense_date: '2026-11-02', expense_month: '2026-11', category: 'transport', purpose: '電車', amount: 0, is_archived: false },
+    { id: 'unknown', store_id: 4, expense_date: '2026-11-02', expense_month: '2026-11', category: null, purpose: '備品', amount: 1000, is_archived: false },
+    { id: 'month', store_id: 4, expense_date: null, expense_month: '2026-11', category: 'supplies', purpose: '備品', amount: 2000, is_archived: false },
+    { id: 'archived', store_id: 1, expense_date: '2026-11-02', expense_month: '2026-11', category: 'other', purpose: '除外', amount: 9000, is_archived: true },
+  ];
+  const partial = report('all', '2026-11-02', '2026-11-02', { expenses });
+  assert.equal(partial.expenseTotal, 1500);
+  assert.deepEqual(partial.includedExpenses.map(e => e.id), ['dated', 'zero', 'unknown']);
+  assert.equal(partial.undatedExpenses.length, 1);
+  assert.equal(partial.expenseByCategory.get('transport'), 500);
+  assert.equal(partial.expenseByCategory.get('unknown'), 1000);
+  assert.equal(partial.expenseByPurpose.get('電車'), 500);
+  assert.equal(partial.expenseByStore.get(4), 1000);
+  const month = report('brand:marron', '2026-11-01', '2026-11-30', { expenses: expenses.filter(e => e.store_id === 4) });
+  assert.equal(month.expenseTotal, 3000);
+  assert.equal(month.includedExpenses.length, 2);
+  assert.equal(month.undatedExpenses.length, 0);
+});
+
+test('work days count distinct actual or provisional dates, excluding absence', () => {
+  const schedules = [
+    { id: 'a', therapist_id: 'm', store_id: 4, work_date: '2026-11-02', start_time: '10:00', end_time: '18:00' },
+    { id: 'b', therapist_id: 'm', store_id: 4, work_date: '2026-11-02', start_time: '18:00', end_time: '22:00' },
+    { id: 'c', therapist_id: 'm', store_id: 4, work_date: '2026-11-03', start_time: '10:00', end_time: '18:00' },
+  ];
+  const attendance = new Map([['c', { status: 'absent' }]]);
+  const t = report('store:4', '2026-11-02', '2026-11-03', { schedules, attendance }).byTherapist.get('m');
+  assert.equal(t.workDates.size, 1);
+  assert.equal(t.pending, 2);
 });
