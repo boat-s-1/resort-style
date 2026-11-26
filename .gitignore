@@ -4,3 +4,6 @@ node_modules/
 .env.local
 .env.*.local
 npm-debug.log*
+
+verification/monthly-report/output/
+app/__monthly_report_fixture/

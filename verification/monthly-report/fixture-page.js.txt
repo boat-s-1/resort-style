@@ -1,0 +1,33 @@
+'use client';
+import MonthlyReport from '../admin/MonthlyReport';
+import { summarizeReport } from '../../lib/monthlyReport.mjs';
+const stores = [
+  { id: 1, name: '豊橋店', brand_code: 'resort-style' },
+  { id: 4, name: 'MarroN', brand_code: 'marron' },
+];
+const codes = ['なし', 'P500', 'R1000', null];
+const bookings = codes.map((nomination_code, index) => ({
+  id: `sample-booking-${index}`, store_id: index % 2 ? 4 : 1, therapist_id: 'sample-therapist',
+  booking_date: '2026-11-02', start_time: `${String(10 + index).padStart(2, '0')}:00`, status: 'completed',
+  total_amount: 10000 + index * 1000, therapist_payout: 6000 + index * 500,
+  duration_minutes: 60, nomination_code, nomination_fee: nomination_code ? 500 : 0,
+  is_first_visit: index === 0, course_name: '60分', payment_method: 'cash',
+}));
+const expenses = Array.from({ length: 75 }, (_, index) => ({
+  id: `sample-expense-${index + 1}`, store_id: index % 2 ? 4 : 1,
+  expense_date: `2026-11-${String(index % 28 + 1).padStart(2, '0')}`, expense_month: '2026-11',
+  category: index % 3 ? 'transport' : 'supplies', purpose: `検証用経費${String(index + 1).padStart(2, '0')}`,
+  amount: (index + 1) * 100, is_archived: false,
+}));
+const summary = summarizeReport({
+  bookings, expenses, inquiries: [], schedules: [{ id: 'sample-shift', store_id: 1,
+    therapist_id: 'sample-therapist', work_date: '2026-11-02', start_time: '10:00', end_time: '18:00' }],
+  attendance: new Map(), therapists: [{ id: 'sample-therapist', name: '匿名テスト' }],
+  start: '2026-11-01', end: '2026-11-30',
+});
+export default function Page() {
+  return <main className="admin-shell"><section>
+    <MonthlyReport stores={stores} initialReport={{ start: '2026-11-01', end: '2026-11-30',
+      scopeLabel: '匿名サンプル・全店舗', ...summary }} />
+  </section></main>;
+}

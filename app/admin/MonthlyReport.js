@@ -26,13 +26,13 @@ async function loadAll(table, fields, apply) {
     if (!data || data.length < 1000) return rows;
   }
 }
-export default function MonthlyReport({ stores }) {
+export default function MonthlyReport({ stores, initialReport = null }) {
   const today = japanBusinessDate();
   const [scope, setScope] = useState('all');
   const [start, setStart] = useState(firstOfMonth(today));
   const [end, setEnd] = useState(today);
   const [included, setIncluded] = useState(sections.map(([key]) => key));
-  const [report, setReport] = useState(null);
+  const [report, setReport] = useState(initialReport);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const options = useMemo(() => [
