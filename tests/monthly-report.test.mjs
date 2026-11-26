@@ -95,6 +95,8 @@ test('F/P/R counts use saved codes, keep missing codes unknown, and do not infer
   ];
   const t = report('store:1', '2026-11-01', '2026-11-01', { bookings }).byTherapist.get('r');
   assert.deepEqual(t.nominationCounts, { F: 1, P: 1, R: 1, unknown: 1 });
+  assert.equal(t.nominationCounts.R / (t.nominationCounts.F + t.nominationCounts.P + t.nominationCounts.R), 1 / 3);
+  assert.equal(Object.values(t.nominationCounts).reduce((sum, count) => sum + count, 0), t.count);
   assert.equal(t.sales - t.payout, 21000);
   assert.equal(nominationGroup('F'), 'F');
   assert.equal(nominationGroup('bad-code'), 'unknown');
@@ -116,6 +118,9 @@ test('expense category, purpose, store and details follow scope and partial-date
   assert.equal(partial.expenseByCategory.get('unknown'), 1000);
   assert.equal(partial.expenseByPurpose.get('電車'), 500);
   assert.equal(partial.expenseByStore.get(4), 1000);
+  for (const breakdown of [partial.expenseByCategory, partial.expenseByPurpose, partial.expenseByStore]) {
+    assert.equal([...breakdown.values()].reduce((sum, amount) => sum + amount, 0), partial.expenseTotal);
+  }
   const month = report('brand:marron', '2026-11-01', '2026-11-30', { expenses: expenses.filter(e => e.store_id === 4) });
   assert.equal(month.expenseTotal, 3000);
   assert.equal(month.includedExpenses.length, 2);
@@ -132,4 +137,19 @@ test('work days count distinct actual or provisional dates, excluding absence', 
   const t = report('store:4', '2026-11-02', '2026-11-03', { schedules, attendance }).byTherapist.get('m');
   assert.equal(t.workDates.size, 1);
   assert.equal(t.pending, 2);
+});
+
+test('long anonymized expense list preserves every detail and reconciles all breakdowns', () => {
+  const expenses = Array.from({ length: 75 }, (_, index) => ({
+    id: `sample-${index}`, store_id: index % 2 ? 4 : 1,
+    expense_date: `2026-11-${String(index % 28 + 1).padStart(2, '0')}`,
+    expense_month: '2026-11', category: index % 3 ? 'transport' : 'supplies',
+    purpose: `匿名用途${index % 5}`, amount: (index + 1) * 100, is_archived: false,
+  }));
+  const result = report('all', '2026-11-01', '2026-11-30', { expenses });
+  assert.equal(result.includedExpenses.length, 75);
+  assert.equal(new Set(result.includedExpenses.map(row => row.id)).size, 75);
+  assert.equal(result.expenseTotal, 285000);
+  for (const breakdown of [result.expenseByCategory, result.expenseByPurpose, result.expenseByStore])
+    assert.equal([...breakdown.values()].reduce((sum, amount) => sum + amount, 0), result.expenseTotal);
 });
