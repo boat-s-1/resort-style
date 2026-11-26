@@ -614,10 +614,15 @@ background:#1185fe;
 @page { size: A4 portrait; margin: 10mm; }
 @media print {
   body { padding: 0 !important; background: #fff; }
-  body * { visibility: hidden !important; }
-  .monthly-report-preview, .monthly-report-preview * { visibility: visible !important; }
-  .monthly-report-preview { position: absolute; top: 0; left: 0; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; overflow: visible; box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  main.admin-shell:has(.monthly-report-preview) { display: block; width: auto; max-width: none; margin: 0; padding: 0; }
+  main.admin-shell:has(.monthly-report-preview) > :not(section),
+  main.admin-shell:has(.monthly-report-preview) > section > :not(.monthly-report),
+  .monthly-report > :not(.monthly-report-preview) { display: none !important; }
+  .monthly-report { display: block; }
+  .monthly-report-preview { width: 100%; max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; overflow: visible; box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .monthly-report-preview section { break-inside: auto; }
+  .monthly-report-preview header, .monthly-report-preview footer, .monthly-report-preview .monthly-report-metrics { break-inside: avoid-page; }
   .monthly-report-preview h3 { break-after: avoid-page; }
-  .monthly-report-preview tr { break-inside: avoid; }
+  .monthly-report-preview thead { display: table-header-group; }
+  .monthly-report-preview tr, .monthly-report-preview .monthly-report-bar { break-inside: avoid-page; }
 }

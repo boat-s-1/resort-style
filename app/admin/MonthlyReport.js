@@ -53,19 +53,23 @@ export default function MonthlyReport({ stores }) {
   }
   async function run(event) {
     event.preventDefault();
-    if (!start || !end || start > end || !selectedStores.length || busy) return;
+    const form = new FormData(event.currentTarget);
+    const rangeStart = String(form.get('start') || '');
+    const rangeEnd = String(form.get('end') || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(rangeStart) || !/^\d{4}-\d{2}-\d{2}$/.test(rangeEnd) || rangeStart > rangeEnd || !selectedStores.length || busy) return;
+    setStart(rangeStart); setEnd(rangeEnd);
     setBusy(true); setError(''); setReport(null);
     try {
       const ids = selectedStores.map(s => s.id);
       const [bookings, expenses, inquiries, schedules, therapistRows] = await Promise.all([
         loadAll('resort_bookings', 'id,store_id,therapist_id,booking_date,start_time,status,total_amount,therapist_payout,duration_minutes,nomination_fee,is_first_visit,course_name,payment_method',
-          q => q.in('store_id', ids).gte('booking_date', start).lte('booking_date', nextDate(end))),
+          q => q.in('store_id', ids).gte('booking_date', rangeStart).lte('booking_date', nextDate(rangeEnd))),
         loadAll('resort_expenses', 'id,store_id,expense_month,expense_date,amount,is_archived',
           q => q.in('store_id', ids)),
         loadAll('resort_booking_inquiries', 'id,store_id,inquiry_date',
-          q => q.in('store_id', ids).gte('inquiry_date', start).lte('inquiry_date', end)),
+          q => q.in('store_id', ids).gte('inquiry_date', rangeStart).lte('inquiry_date', rangeEnd)),
         loadAll('resort_schedules', 'id,store_id,therapist_id,work_date,start_time,end_time',
-          q => q.in('store_id', ids).gte('work_date', start).lte('work_date', end)),
+          q => q.in('store_id', ids).gte('work_date', rangeStart).lte('work_date', rangeEnd)),
         loadAll('resort_therapists', 'id,name', q => q),
       ]);
       const scheduleIds = schedules.map(s => s.id);
@@ -76,9 +80,9 @@ export default function MonthlyReport({ stores }) {
         if (attendanceError) throw attendanceError;
         for (const row of data || []) attendance.set(row.schedule_id, row);
       }
-      setReport({ start, end, scopeLabel, ...summarizeReport({
+      setReport({ start: rangeStart, end: rangeEnd, scopeLabel, ...summarizeReport({
         bookings, expenses, inquiries, schedules, attendance, therapists: therapistRows,
-        start, end,
+        start: rangeStart, end: rangeEnd,
       }) });
     } catch (reason) {
       setError('集計できませんでした。再ログインまたは通信状態を確認してください：' + reason.message);
@@ -100,8 +104,8 @@ export default function MonthlyReport({ stores }) {
           <button type="button" onClick={() => preset('last')}>先月</button>
           <button type="button" onClick={() => preset('year')}>今年</button>
         </div>
-        <label>集計開始日<input type="date" required value={start} onChange={e => { setStart(e.target.value); setReport(null); }} /></label>
-        <label>集計終了日<input type="date" required min={start} value={end} onChange={e => { setEnd(e.target.value); setReport(null); }} /></label>
+        <label>集計開始日<input name="start" type="date" required value={start} onInput={e => { setStart(e.currentTarget.value); setReport(null); }} onChange={e => { setStart(e.target.value); setReport(null); }} /></label>
+        <label>集計終了日<input name="end" type="date" required value={end} onInput={e => { setEnd(e.currentTarget.value); setReport(null); }} onChange={e => { setEnd(e.target.value); setReport(null); }} /></label>
       </div>
       <fieldset><legend>PDFに出力する項目</legend><div className="admin-checks">
         {sections.map(([key, label]) => <label key={key}><input type="checkbox" checked={selected(key)}
@@ -125,7 +129,7 @@ export default function MonthlyReport({ stores }) {
           <div>利益<strong>{yen(report.profit)}</strong></div>
         </div>
           <p>会計済み {report.total.count}件 ／ 経費は集計対象期間に日付がある記録、または月全体が含まれる日付未入力の記録を算入。</p>
-          {(report.total.unknownSales || report.total.unknownPayout || report.undatedExpenses.length || report.missingPayment) &&
+          {Boolean(report.total.unknownSales || report.total.unknownPayout || report.undatedExpenses.length || report.missingPayment) &&
             <p className="monthly-report-warning">要確認：売上未入力 {report.total.unknownSales}件、給与未入力 {report.total.unknownPayout}件、期間内に日付を配分できない経費 {report.undatedExpenses.length}件（{yen(report.undatedExpenses.reduce((a, e) => a + Number(e.amount), 0))}）、会計済みで支払方法が未会計 {report.missingPayment}件。</p>}
         </section>}
         {selected('daily') && <section><h3>営業日別売上</h3>
