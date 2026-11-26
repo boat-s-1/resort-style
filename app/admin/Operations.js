@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import MarronBookingFields from './MarronBookingFields';
 import { bookingBusinessDate, inBusinessHours, japanBusinessDate, japanTimeStamp } from '../../lib/businessDay.mjs';
 import ExpensesPanel from './ExpensesPanel';
+import MonthlyReport from './MonthlyReport';
 import RoomTimeline from './RoomTimeline';
 import { roomDisplayName } from '../../lib/roomDisplayName.mjs';
 import customerSearch from '../../lib/customerSearch.cjs';
@@ -325,8 +326,9 @@ export default function Operations({ stores, allStores, therapists, schedules, a
   }
 
   return <section>
-    <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
-    {view !== 'customers' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
+    <nav className="admin-subtabs">{[['dashboard','売上状況'],['bookings','予約・会計'],['customers','顧客管理'],['activity','稼働状況'],['report','集計・月報']].map(([k,l]) => <button key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{l}</button>)}</nav>
+    {view !== 'customers' && view !== 'report' && <div className="admin-toolbar"><label>対象月<input type="month" value={month} onChange={(e) => {if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value)}} /></label>{view === 'bookings' && <button onClick={exportCsv}>CSV出力</button>}</div>}
+    {view === 'report' && <MonthlyReport stores={allStores} />}
     {view === 'dashboard' && <><RoomTimeline stores={stores} bookings={bookings} schedules={schedules} /><div className="admin-metrics admin-finance-metrics"><Metric label="本営業日の売上" value={yen(metrics.today)} /><Metric label={`${month} 売上`} value={yen(monthSales)} /><Metric label="クレジット売上" value={yen(cardSales)} /><Metric label="PayPay売上" value={yen(paypaySales)} /><Metric label="店舗実質売上" value={yen(monthSales-monthPayout)} /><Metric label="利益" value={expensesReady?yen(monthSales-monthPayout-expenseTotal):'—'} /><Metric label="予約件数" value={`${monthRows.length}件`} /><Metric label="問い合わせ件数" value={`${inquiryCount}件`} /><Metric label="不成約件数" value={`${monthInquiries.length}件`} /><Metric label="本営業日の出勤" value={`${metrics.workers}人`} /><Metric label="未会計" value={`${metrics.unpaid}件`} warn={metrics.unpaid > 0} /><Metric label="経費合計" value={expensesReady?yen(expenseTotal):'—'}/></div><Table head={['店舗','問い合わせ','不成約','会計件数','売上','クレジット','PayPay','バック','店舗実質売上','利益','経費']} rows={storeRows.map((s) => [s.name,`${s.inquiries}件`,`${s.lost}件`,`${s.count}件`,yen(s.sales),yen(s.card),yen(s.paypay),yen(s.payout),yen(s.sales-s.payout),expensesReady?yen(s.sales-s.payout-s.cost):'—',expensesReady?yen(s.cost):'—'])} /><p>問い合わせ件数＝登録された予約件数＋不成約件数。同じ問い合わせを重複登録しないでください。</p><p>利益＝対象月の店舗実質売上−対象月の経費</p><details className="admin-booking-accordion"><summary>経費の入力・明細<span>対象月の経費合計：{expensesReady?yen(expenseTotal):'—'}</span></summary><ExpensesPanel key={`${brand}-${month}`} stores={stores} month={month} rows={monthExpenses} ready={expensesReady} onSaved={load}/></details></>}
     {view === 'dashboard' && <section className="admin-panel">
       <h2>営業日別の売上</h2>
