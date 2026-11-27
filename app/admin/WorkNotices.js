@@ -5,21 +5,26 @@ import { supabase } from '../../lib/supabase';
 const label={start:'お仕事開始の報告',finish:'お仕事終了の報告'};
 export default function WorkNotices(){
   const [rows,setRows]=useState([]),[available,setAvailable]=useState(false),[sound,setSound]=useState(false);
-  const seen=useRef(null), audio=useRef(null), mounted=useRef(true);
+  const seen=useRef(null), audio=useRef(null), mounted=useRef(true),pending=useRef(false);
   const load=useCallback(async()=>{
-    const {data,error}=await supabase.rpc('resort_admin_work_notices');
+    if(pending.current||document.hidden)return;
+    pending.current=true;
+    let data,error;
+    try{({data,error}=await supabase.rpc('resort_admin_work_notices'));}
+    catch{error=true;}
+    finally{pending.current=false;}
     if(!mounted.current)return;
     if(error||!Array.isArray(data)){setAvailable(false);return;}
     const unread=data.filter(n=>!n.read_at);
     if(sound&&seen.current!==null&&unread.some(n=>!seen.current.has(n.id))){
-      try{const ctx=audio.current;const oscillator=ctx.createOscillator(),gain=ctx.createGain();
+      try{const ctx=audio.current;if(!ctx)throw Error('通知音が無効です');const oscillator=ctx.createOscillator(),gain=ctx.createGain();
         oscillator.frequency.value=660;gain.gain.value=.04;oscillator.connect(gain);gain.connect(ctx.destination);
         oscillator.start();oscillator.stop(ctx.currentTime+.12);
       }catch{}
     }
     seen.current=new Set(unread.map(n=>n.id));setRows(data);setAvailable(true);
   },[sound]);
-  useEffect(()=>{mounted.current=true;load();const timer=setInterval(load,15000);return()=>{mounted.current=false;clearInterval(timer)}},[load]);
+  useEffect(()=>{mounted.current=true;load();const timer=setInterval(load,15000);const visible=()=>{if(!document.hidden)load()};document.addEventListener('visibilitychange',visible);return()=>{mounted.current=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible)}},[load]);
   useEffect(()=>()=>{audio.current?.close?.()},[]);
   const toggleSound=async()=>{if(sound){setSound(false);return;}try{audio.current=new (window.AudioContext||window.webkitAudioContext)();await audio.current.resume();setSound(true);}catch{setSound(false)}};
   const markRead=async id=>{const {error}=await supabase.rpc('resort_admin_work_notices',{p_mark_read:id});if(!error)load()};
