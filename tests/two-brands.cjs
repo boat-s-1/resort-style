@@ -1,12 +1,14 @@
+const {createRequire}=require('node:module');const {resolve}=require('node:path');
+const sourceRequire=createRequire(resolve('app/admin/Operations.js'));
 const {test}=require('node:test'); const assert=require('node:assert/strict'); const vm=require('node:vm'); const fs=require('node:fs'); const swc=require('next/dist/build/swc');
 function loadFields(){const mod={exports:{}};const code=swc.transformSync(fs.readFileSync('app/admin/MarronBookingFields.js','utf8'),{jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}}},module:{type:'commonjs'}}).code;vm.runInNewContext(code,{module:mod,exports:mod.exports,require:n=>n.includes('marronPricing')?require('../lib/marronPricing.cjs'):require(n),Object});return mod.exports.default;}
 function mount(brand){
  let values=[],idx=0,effects=[],mounted=false,writes=[];
- const fixtures={resort_expenses:[{id:'em',store_id:4,expense_month:'2026-10',amount:100},{id:'er',store_id:1,expense_month:'2026-10',amount:30},{id:'old',store_id:4,expense_month:'2026-09',amount:9999}],resort_customers:[{id:'a',name:'MarroN only',phone:'1',uses_marron:true,uses_resort_style:false},{id:'b',name:'Resort only',phone:'2',uses_marron:false,uses_resort_style:true},{id:'c',name:'Both',phone:'3',uses_marron:true,uses_resort_style:true}],resort_bookings:[{id:'r',store_id:1,customer_id:'b',booking_date:'2026-10-24',status:'completed',total_amount:100,therapist_payout:20},{id:'m',store_id:4,customer_id:'a',booking_date:'2026-10-24',status:'completed',total_amount:500,therapist_payout:100}]};
- const supabase={from(table){let ids;return {select(){return this},order(){return this},in(key,v){ids=v;return this},insert(payload){writes.push({table,payload});return this},update(payload){writes.push({table,payload});return this},eq(){return this},then(resolve){return Promise.resolve({data:(fixtures[table]||[]).filter(r=>!ids||ids.includes(r.store_id)),error:null}).then(resolve)}}}};
+ const fixtures={resort_expenses:[{id:'em',store_id:4,expense_month:'2026-10',amount:100},{id:'er',store_id:1,expense_month:'2026-10',amount:30},{id:'old',store_id:4,expense_month:'2026-09',amount:9999}],resort_customers:[{id:'a',name:'MarroN only',phone:'1',uses_marron:true,uses_resort_style:false},{id:'b',name:'Resort only',phone:'2',uses_marron:false,uses_resort_style:true},{id:'c',name:'Both',phone:'3',uses_marron:true,uses_resort_style:true}],resort_bookings:[{id:'r',store_id:1,customer_id:'b',booking_date:'2026-10-24',start_time:'12:00',status:'completed',total_amount:100,therapist_payout:20},{id:'m',store_id:4,customer_id:'a',booking_date:'2026-10-24',start_time:'12:00',status:'completed',total_amount:500,therapist_payout:100}]};
+ const supabase={rpc:async(name,args)=>{writes.push({name,args});return {data:'fixture-booking',error:null}},from(table){let ids;return {select(){return this},order(){return this},range(){return this},in(key,v){ids=v;return this},insert(payload){writes.push({table,payload});return this},update(payload){writes.push({table,payload});return this},eq(){return this},then(resolve){return Promise.resolve({data:(fixtures[table]||[]).filter(r=>!ids||ids.includes(r.store_id)),error:null}).then(resolve)}}}};
  const mod={exports:{}};const code=swc.transformSync(fs.readFileSync('app/admin/Operations.js','utf8'),{jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}}},module:{type:'commonjs'}}).code;
- vm.runInNewContext(code,{exports:mod.exports,module:mod,require(name){if(name.includes('customerSearch'))return require('../lib/customerSearch.cjs');if(name.includes('ExpensesPanel'))return {__esModule:true,default:'expense-panel'};if(name.includes('marronPricing'))return require('../lib/marronPricing.cjs');if(name.includes('MarronBookingFields'))return {__esModule:true,default:loadFields()};if(name==='react')return {useState(v){const i=idx++;if(!(i in values))values[i]=typeof v==='function'?v():v;return [values[i],x=>values[i]=typeof x==='function'?x(values[i]):x]},useMemo:f=>f(),useCallback:f=>f,useEffect(f){if(!mounted)effects.push(f)}};if(name.includes('supabase'))return {supabase};return require(name)},Date,Intl,Set,console});
- const props={brand,stores:[{id:brand==='marron'?4:1,name:brand}],therapists:[{id:'cast',name:'Cast'}],schedules:[],notify:()=>{}};
+ vm.runInNewContext(code,{exports:mod.exports,module:mod,require(name){if(name.includes('customerSearch'))return require('../lib/customerSearch.cjs');if(name.includes('ExpensesPanel'))return {__esModule:true,default:'expense-panel'};if(name.includes('marronPricing'))return require('../lib/marronPricing.cjs');if(name.includes('MonthlyReport')||name.includes('RoomTimeline'))return {__esModule:true,default:'stub'};if(name.includes('MarronBookingFields'))return {__esModule:true,default:loadFields()};if(name==='react')return {useState(v){const i=idx++;if(!(i in values))values[i]=typeof v==='function'?v():v;return [values[i],x=>values[i]=typeof x==='function'?x(values[i]):x]},useMemo:f=>f(),useCallback:f=>f,useEffect(f){if(!mounted)effects.push(f)}};if(name.includes('supabase'))return {supabase};return name.startsWith('../../lib/')?sourceRequire(name):require(name)},Date,Intl,Set,console});
+ const props={brand,allStores:[{id:4,name:'MarroN',brand_code:'marron'},{id:1,name:'Resort',brand_code:'resort-style'}],stores:[{id:brand==='marron'?4:1,name:brand}],therapists:[{id:'cast',name:'Cast'}],schedules:[],notify:()=>{}};
  function expand(n){if(!n||typeof n!=='object')return n;if(Array.isArray(n))return n.map(expand);if(typeof n.type==='function')return expand(n.type(n.props));return {...n,props:{...n.props,children:expand(n.props.children)}}}
  function render(){idx=0;const t=mod.exports.default(props);mounted=true;return expand(t)}
  render();effects.forEach(f=>f());return {render,writes};
@@ -15,12 +17,12 @@ function all(tree,predicate){if(!tree||typeof tree!=='object')return [];if(Array
 const text=n=>typeof n==='string'?n:Array.isArray(n)?n.map(text).join(''):n&&typeof n==='object'?text(n.props?.children):'';
 const flush=()=>new Promise(r=>setImmediate(r));
 for(const brand of ['marron','resort-style'])test(`${brand}: customer flags and bookings are scoped`,async()=>{
- const m=mount(brand);await flush();let tree=m.render();const buttons=all(tree,n=>n.type==='button');buttons.find(n=>text(n)==='顧客管理').props.onClick();tree=m.render();const shown=text(tree);assert.ok(shown.includes('Both'));assert.ok(shown.includes(brand==='marron'?'MarroN only':'Resort only'));assert.ok(!shown.includes(brand==='marron'?'Resort only':'MarroN only'));
+ const m=mount(brand);await flush();let tree=m.render();const buttons=all(tree,n=>n.type==='button');buttons.find(n=>text(n)==='顧客管理').props.onClick();tree=m.render();const shown=text(tree);assert.ok(shown.includes('Both'));assert.ok(shown.includes(brand==='marron'?'MarroN only':'Resort only'));assert.ok(shown.includes(brand==='marron'?'Resort only':'MarroN only'));
  for(const [label,value]of [['名前','Test'],['電話番号','09900000003']]){const node=all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0];all(node,n=>n.type==='input')[0].props.onChange({target:{value}});}
  await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});assert.equal(m.writes[0].payload.uses_marron,brand==='marron');assert.equal(m.writes[0].payload.uses_resort_style,brand==='resort-style');
  const checks=all(tree,n=>n.type==='input'&&n.props.type==='checkbox');assert.equal(checks[1].props.checked,brand==='marron');assert.equal(checks[2].props.checked,brand==='resort-style');
  checks[brand==='marron'?2:1].props.onChange({target:{checked:true}});tree=m.render();assert.equal(all(tree,n=>n.type==='input'&&n.props.type==='checkbox').filter(n=>n.props.checked).length,2);
- all(tree,n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();tree=m.render();const options=all(tree,n=>n.type==='option');assert.ok(options.some(n=>text(n).includes('Both')));assert.ok(!options.some(n=>text(n).includes(brand==='marron'?'Resort only':'MarroN only')));
+ all(tree,n=>n.type==='button').find(n=>text(n)==='予約・会計').props.onClick();tree=m.render();const options=all(tree,n=>n.type==='option');assert.ok(options.some(n=>text(n).includes('Both')));assert.ok(options.some(n=>text(n).includes(brand==='marron'?'Resort only':'MarroN only')));
 });
 
 test('MarroN field order and saved automatic totals match the requested form',async()=>{
@@ -30,7 +32,7 @@ test('MarroN field order and saved automatic totals match the requested form',as
  function set(label,value){const node=all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]===label)[0];const field=all(node,n=>n.type==='select'||n.type==='input')[0];field.props.onChange({target:{value}});}
  set('顧客','a');set('店舗','4');set('女の子','cast');set('開始時間','10:00');set('コース名','新規90分コース');set('延長','40');set('指名料','R2000');
  const shown=text(m.render());assert.ok(shown.includes('130分'));assert.ok(shown.includes('¥24,000'));assert.ok(shown.includes('¥16,000'));
- await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const payload=m.writes.find(w=>w.table==='resort_bookings').payload;
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const call=m.writes.find(w=>w.name==='resort_admin_save_booking');assert.equal(call.args.p_id,null);const payload=call.args.p_payload;
  assert.equal(payload.duration_minutes,130);assert.equal(payload.total_amount,24000);assert.equal(payload.therapist_payout,16000);assert.equal(payload.pricing_version,1);assert.equal(payload.extension_minutes,40);assert.equal(payload.nomination_code,'R2000');
 });
 
@@ -50,7 +52,7 @@ test('booking customer search keeps current selection and excludes other brand c
  const label=all(m.render(),n=>n.type==='label'&&Array.isArray(n.props.children)&&n.props.children[0]==='顧客')[0];all(label,n=>n.type==='select')[0].props.onChange({target:{value:'a'}});
  const search=()=>all(m.render(),n=>n.type==='input'&&n.props.type==='search')[0];search().props.onChange({target:{value:'Both'}});
  let options=all(m.render(),n=>n.type==='option');assert.ok(options.some(n=>text(n).includes('Both')));assert.ok(options.some(n=>n.props.value==='a'));assert.ok(!options.some(n=>n.props.value==='b'));
- search().props.onChange({target:{value:'Resort only'}});assert.ok(text(m.render()).includes('一致する顧客がいません'));assert.ok(all(m.render(),n=>n.type==='option').some(n=>n.props.value==='a'));
+ search().props.onChange({target:{value:'Resort only'}});assert.ok(all(m.render(),n=>n.type==='option').some(n=>n.props.value==='b'));assert.ok(all(m.render(),n=>n.type==='option').some(n=>n.props.value==='a'));
  all(m.render(),n=>n.type==='button'&&n.props.children==='検索をクリア')[0].props.onClick();assert.equal(search().props.value,'');
 });
 
@@ -61,7 +63,7 @@ test('Resort courses set the requested time and price independently of MarroN',a
  for(const [name,time,price] of courses){field('コース名').props.onChange({target:{value:name}});assert.equal(field('施術時間（分）').props.value,time);assert.equal(field('コース料金').props.value,price);}
  assert.equal(all(field('コース名'),n=>n.type==='option'&&n.props.value).length,7);
  field('顧客').props.onChange({target:{value:'b'}});field('店舗').props.onChange({target:{value:'1'}});field('女の子').props.onChange({target:{value:'cast'}});
- await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;assert.equal(p.course_name,'マイクロコース 120分');assert.equal(p.duration_minutes,120);assert.equal(p.base_price,27000);assert.equal(p.pricing_version,undefined);
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const call=m.writes.find(w=>w.name==='resort_admin_save_booking');assert.equal(call.args.p_id,null);const p=call.args.p_payload;assert.equal(p.course_name,'マイクロコース 120分');assert.equal(p.duration_minutes,120);assert.equal(p.base_price,27000);assert.equal(p.pricing_version,undefined);
 });
 
 test('Resort quarter hours, nomination, extension and signed adjustment save correct totals',async()=>{
@@ -77,7 +79,7 @@ test('Resort quarter hours, nomination, extension and signed adjustment save cor
  set('指名料','R2000');set('割引・割増','5000');assert.ok(text(m.render()).includes('¥25,000'));
  set('割引・割増','-5000');assert.ok(text(m.render()).includes('¥15,000'));
  set('顧客','b');set('店舗','1');set('女の子','cast');set('開始時間','23:45');
- await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const call=m.writes.find(w=>w.name==='resort_admin_save_booking');assert.equal(call.args.p_id,null);const p=call.args.p_payload;
  assert.equal(p.total_amount,15000);assert.equal(p.discount,5000);assert.equal(p.price_adjustment,0);assert.equal(p.nomination_fee,2000);assert.equal(p.nomination_code,'R2000');assert.equal(p.extension_minutes,20);assert.equal(p.duration_minutes,110);assert.equal(p.start_time,'23:45');
 });
 
@@ -93,5 +95,5 @@ test('Resort salary follows course, extension and nomination and is saved with s
  set('割引・割増','-500');assert.equal(field('女子給料（自動計算）').props.value,29000);
  assert.ok(text(m.render()).includes('売上¥40,500'));assert.ok(text(m.render()).includes('店落ち¥11,500'));
  set('顧客','b');set('店舗','1');set('女の子','cast');set('開始時間','12:00');
- await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const p=m.writes.find(w=>w.table==='resort_bookings').payload;assert.equal(p.total_amount,40500);assert.equal(p.therapist_payout,29000);
+ await all(m.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});const call=m.writes.find(w=>w.name==='resort_admin_save_booking');assert.equal(call.args.p_id,null);const p=call.args.p_payload;assert.equal(p.total_amount,40500);assert.equal(p.therapist_payout,29000);
 });

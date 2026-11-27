@@ -11,6 +11,7 @@ import ShiftRequests from './ShiftRequests';
 import AttendancePanel from './AttendancePanel';
 import Manual from './Manual';
 import Interviews from './Interviews';
+import WorkNotices from './WorkNotices';
 
 const emptyTherapist = { id:'',name:'',slug:'',age:'',height:'',nomination_fee:0,profile_text:'',manager_comment:'',image_path:'',x_url:'',instagram_url:'',bluesky_url:'',is_published:true,display_order:0,store_ids:[] };
 const scheduleTimes = Array.from({ length: 48 }, (_, index) =>
@@ -112,15 +113,11 @@ export default function AdminPage(){
   setSaving(true);
   try{
    const p={therapist_id:scheduleForm.therapist_id,store_id:Number(scheduleForm.store_id),work_date:scheduleForm.work_date,start_time:scheduleForm.start_time||null,end_time:scheduleForm.end_time||null,note:scheduleForm.note,is_published:scheduleForm.is_published};
-   const q=scheduleForm.id?supabase.from('resort_schedules').update(p).eq('id',scheduleForm.id):supabase.from('resort_schedules').upsert(p,{onConflict:'therapist_id,work_date'});
-   const {data,error}=await q.select('id');
-   if(error){setMessage(error.code==='23505'?'その女の子は同じ日に出勤予定が登録済みです。日付か女の子を確認してください。':`出勤予定を保存できませんでした：${error.message}`);return;}
-   if(!data?.length){setMessage('保存結果を確認できませんでした。出勤一覧を確認してから再度お試しください。');return;}
-   const roomQuery=scheduleForm.room_number
-     ?supabase.from('resort_schedule_rooms').upsert({schedule_id:data[0].id,room_number:Number(scheduleForm.room_number)},{onConflict:'schedule_id'})
-     :supabase.from('resort_schedule_rooms').delete().eq('schedule_id',data[0].id);
-   const {error:roomError}=await roomQuery;
-   if(roomError){await loadData();setMessage('出勤予定は保存されましたが、ルーム割当を保存できませんでした：'+roomError.message);return;}
+   const {data,error}=await supabase.rpc('resort_admin_save_schedule',{
+    p_id:scheduleForm.id||null,p_payload:p,p_room:scheduleForm.room_number?Number(scheduleForm.room_number):null
+   });
+   if(error){setMessage(error.code==='40P01'?'同時更新が競合しました。出勤一覧を更新してから再度保存してください。':error.code==='23505'?'その女の子は同じ日に出勤予定が登録済みです。日付か女の子を確認してください。':`出勤予定を保存できませんでした：${error.message}`);return;}
+   if(!data){setMessage('保存結果を確認できませんでした。出勤一覧を確認してから再度お試しください。');return;}
    setScheduleForm(emptySchedule);await loadData();setMessage('出勤店舗・ルームと時間を保存しました。');
   }catch{setMessage('通信に失敗しました。出勤一覧を確認してから再度お試しください。');}finally{setSaving(false)}
  };
@@ -143,7 +140,7 @@ export default function AdminPage(){
  if(loading)return <main className="admin-shell"><p>確認中…</p></main>;
  if(!session||!isAdmin)return <main className="admin-shell admin-login-shell"><form className="admin-panel admin-login" onSubmit={login}><p className="admin-kicker">RESORT-STYLE</p><h1>管理画面ログイン</h1><label>メールアドレス<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>パスワード<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label><button className="admin-primary">ログイン</button>{message&&<p className="admin-message">{message}</p>}<a href="/forgot-password">パスワードを忘れた方</a><a href="/">← サイトへ戻る</a></form></main>;
  return <main className="admin-shell"><header className="admin-header"><div><p className="admin-kicker">RESORT-STYLE</p><h1>店舗運営ダッシュボード</h1></div><div className="admin-header-actions"><a href="/" target="_blank">サイトを確認</a><button onClick={()=>supabase.auth.signOut().then(()=>location.reload())}>ログアウト</button></div></header>
- <nav className="admin-tabs admin-store-tabs" aria-label="店舗と共通マニュアル">{[['marron','MarroN'],['resort-style','Resort-style']].map(([key,label])=><button key={key} aria-pressed={!['manual','interviews'].includes(tab)&&brand===key} disabled={saving} className={!['manual','interviews'].includes(tab)&&brand===key?'active':''} onClick={()=>switchBrand(key)}>{label}</button>)}<button type="button" aria-pressed={tab==='interviews'} disabled={saving} className={tab==='interviews'?'active':''} onClick={()=>setTab('interviews')}>面接</button><button type="button" aria-pressed={tab==='manual'} disabled={saving} className={tab==='manual'?'active':''} onClick={()=>setTab('manual')}>マニュアル</button></nav>{!['manual','interviews'].includes(tab)&&<p>管理中：{brand==='marron'?'MarroN':'Resort-style'}</p>}{!['manual','interviews'].includes(tab)&&<nav className="admin-tabs admin-main-tabs"><button className={tab==='operations'?'active':''} onClick={()=>setTab('operations')}>顧客・予約・売上・稼働</button><button className={tab==='therapists'?'active':''} onClick={()=>setTab('therapists')}>プロフィール管理</button><button className={tab==='schedules'?'active':''} onClick={()=>setTab('schedules')}>出勤・店舗管理</button><button className={tab==='media'?'active':''} onClick={()=>setTab('media')}>媒体一覧</button><a href={`/admin/mypage-accounts?brand=${brand}`} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',padding:'10px 14px',borderRadius:10,textDecoration:'none',fontWeight:700}}>女の子マイページ管理</a></nav>}{message&&<p className="admin-message">{message}</p>}
+ <WorkNotices/><nav className="admin-tabs admin-store-tabs" aria-label="店舗と共通マニュアル">{[['marron','MarroN'],['resort-style','Resort-style']].map(([key,label])=><button key={key} aria-pressed={!['manual','interviews'].includes(tab)&&brand===key} disabled={saving} className={!['manual','interviews'].includes(tab)&&brand===key?'active':''} onClick={()=>switchBrand(key)}>{label}</button>)}<button type="button" aria-pressed={tab==='interviews'} disabled={saving} className={tab==='interviews'?'active':''} onClick={()=>setTab('interviews')}>面接</button><button type="button" aria-pressed={tab==='manual'} disabled={saving} className={tab==='manual'?'active':''} onClick={()=>setTab('manual')}>マニュアル</button></nav>{!['manual','interviews'].includes(tab)&&<p>管理中：{brand==='marron'?'MarroN':'Resort-style'}</p>}{!['manual','interviews'].includes(tab)&&<nav className="admin-tabs admin-main-tabs"><button className={tab==='operations'?'active':''} onClick={()=>setTab('operations')}>顧客・予約・売上・稼働</button><button className={tab==='therapists'?'active':''} onClick={()=>setTab('therapists')}>プロフィール管理</button><button className={tab==='schedules'?'active':''} onClick={()=>setTab('schedules')}>出勤・店舗管理</button><button className={tab==='media'?'active':''} onClick={()=>setTab('media')}>媒体一覧</button><a href={`/admin/mypage-accounts?brand=${brand}`} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',padding:'10px 14px',borderRadius:10,textDecoration:'none',fontWeight:700}}>女の子マイページ管理</a></nav>}{message&&<p className="admin-message">{message}</p>}
  {tab==='media'&&<MediaAccounts key={brand} brand={brand}/>} 
  {tab==='manual'&&<Manual/>}
  {tab==='interviews'&&<Interviews/>}
