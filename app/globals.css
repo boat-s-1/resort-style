@@ -610,6 +610,7 @@ background:#1185fe;
 .monthly-report-preview footer { border-top: 1px solid #ddd; margin-top: 18px; padding-top: 8px; color: #666; }
 @media (max-width: 640px) {
   .monthly-report-preview { padding: 12px; overflow-x: auto; }
+  .monthly-report-table-wrap table { min-width: 560px; }
   .monthly-report-metrics { grid-template-columns: repeat(2, 1fr); }
   .monthly-report-bar { grid-template-columns: 75px 1fr 72px 30px; gap: 4px; font-size: 10px; }
 }
@@ -629,4 +630,6 @@ background:#1185fe;
   .monthly-report-preview tr, .monthly-report-preview .monthly-report-bar { break-inside: avoid-page; }
   .monthly-report-table-wrap { overflow: visible; }
   .monthly-report-preview table { table-layout: fixed; font-size: 10px; }
+  .monthly-report-preview th, .monthly-report-preview td { padding: 3px 4px; }
+  .monthly-report-preview footer { margin-top: 6px; padding-top: 4px; font-size: 9px; }
 }

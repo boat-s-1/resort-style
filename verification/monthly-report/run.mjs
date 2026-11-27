@@ -84,10 +84,13 @@ try {
   if (pages.length < 2) throw Error('Long expense table did not span pages');
   if (pdfText.split('\f').some((p, i, all) => i < all.length - 1 && !p.trim())) throw Error('Blank PDF page');
   for (let i = 1; i <= 75; i++) if (!pdfText.includes(`検証用経費${String(i).padStart(2, '0')}`)) throw Error(`PDF missing expense ${i}`);
+  const detailStart = pages.findIndex(p => p.includes('経費明細'));
+  if (detailStart < 0) throw Error('Expense detail heading missing from PDF');
   for (const [index, pdfPage] of pages.entries()) {
-    if (index && /検証用経費\d+/.test(pdfPage) && !pdfPage.includes('日付・計上月'))
+    if (index >= detailStart && /検証用経費\d+/.test(pdfPage) && !pdfPage.includes('日付・計上月'))
       throw Error(`Expense table heading missing on page ${index + 1}`);
   }
+  if (pages.at(-1).trim().startsWith('本レポートは')) throw Error('Footer-only PDF page');
   await page.emulateMedia({ media: 'screen' });
   await page.getByRole('checkbox', { name: '経費明細' }).uncheck();
   if (await page.locator('.monthly-report-preview').getByRole('heading', { name: '経費明細' }).count())
