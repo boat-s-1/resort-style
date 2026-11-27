@@ -12,6 +12,7 @@ function all(node, predicate) {
 function mount(rpc) {
   let states = [], index = 0, effects = [], mounted = false;
   const listeners = {}, timers = [];
+  class SilentAudioContext { async resume() {} close() {} }
   const module = { exports: {} };
   const supabase = { rpc };
   const source = swc.transformSync(fs.readFileSync('app/admin/WorkNotices.js', 'utf8'), {
@@ -31,6 +32,7 @@ function mount(rpc) {
       return require(name);
     },
     document: { hidden: false, addEventListener(name, fn) { listeners[name] = fn; }, removeEventListener(name) { delete listeners[name]; } },
+    window: { AudioContext: SilentAudioContext },
     setInterval(fn) { timers.push(fn); return timers.length; }, clearInterval() {}, Date, console,
   });
   function render() { index = 0; const tree = module.exports.default(); mounted = true; return tree; }
@@ -54,4 +56,15 @@ test('staff notice polling never overlaps, and mark-read uses the notice RPC', a
   await flush();
   assert.equal(calls.filter(call => call.args?.p_mark_read === 12).length, 1);
   assert.ok(calls.every(call => call.name === 'resort_admin_work_notices'));
+});
+test('staff notification sound is off until explicitly enabled, and can be disabled', async () => {
+  const m = mount(async () => ({ data: [], error: null }));
+  await flush();
+  const soundButton = () => all(m.render(), node => node.type === 'button')
+    .find(button => String(button.props.children).includes('通知音'));
+  assert.equal(soundButton().props.children[1], 'OFF');
+  await soundButton().props.onClick();
+  assert.equal(soundButton().props.children[1], 'ON');
+  await soundButton().props.onClick();
+  assert.equal(soundButton().props.children[1], 'OFF');
 });

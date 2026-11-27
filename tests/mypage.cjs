@@ -39,3 +39,14 @@ test('rapid work start presses send one RPC and update state only after success'
 test('late room response cannot restore private state after logout',async()=>{
  let finish;const m=mount({rpcOverride:name=>name==='resort_room_availability'?new Promise(r=>finish=r):null});await flush();const room=all(m.render(),n=>n.type==='button'&&text(n)==='ルーム空き')[0];room.props.onClick();assert.equal(m.calls.filter(c=>c.name==='resort_room_availability').length,1);const logout=all(m.render(),n=>n.type==='button'&&text(n)==='ログアウト')[0].props.onClick();finish({data:[],error:null});await logout;assert.ok(text(m.render()).includes('ログインID'));assert.ok(!text(m.render()).includes('ルーム空き状況'));
 });
+test('older room result cannot replace the later selected business day',async()=>{
+ const pending=[];const m=mount({rpcOverride:name=>name==='resort_room_availability'?new Promise(resolve=>pending.push(resolve)):null});await flush();
+ all(m.render(),n=>n.type==='button'&&text(n)==='ルーム空き')[0].props.onClick();
+ const dayButtons=()=>all(m.render(),n=>n.type==='button'&&n.props['aria-pressed']!==undefined);
+ const later=dayButtons()[1];later.props.onClick();
+ const calls=m.calls.filter(c=>c.name==='resort_room_availability');assert.equal(calls.length,2);
+ pending[1]({data:[],error:null});await flush();
+ assert.equal(dayButtons()[1].props['aria-pressed'],true);
+ pending[0]({data:[],error:null});await flush();
+ assert.equal(dayButtons()[1].props['aria-pressed'],true);
+});
