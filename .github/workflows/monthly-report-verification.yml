@@ -5,6 +5,7 @@ on:
       - feature/monthly-report-details
     paths:
       - .github/workflows/monthly-report-verification.yml
+      - verification/monthly-report/run.mjs
   workflow_dispatch:
 permissions:
   contents: read

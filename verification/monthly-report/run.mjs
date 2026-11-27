@@ -38,8 +38,11 @@ try {
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.locator('.monthly-report-preview').waitFor();
-  if (await page.locator('.monthly-report-preview tbody tr:has-text("検証用経費")').count() !== 75)
-    throw Error('Expense details did not include all 75 rows');
+  await page.screenshot({ path: new URL('desktop-diagnostic.png', out).pathname, fullPage: true });
+  const expenseRows = await page.locator('.monthly-report-preview tbody tr').filter({ hasText: '検証用経費' }).count();
+  console.log('Expense detail rows:', expenseRows, 'summary:',
+    (await page.locator('.monthly-report-preview').innerText()).slice(0, 500));
+  if (expenseRows !== 75) throw Error(`Expense details showed ${expenseRows} of 75 rows`);
   const nominationRow = await page.locator('.monthly-report-preview table').filter({ hasText: '分類計' })
     .locator('tbody tr').first().innerText();
   if (!/1件\s+1件\s+1件\s+3件\s+1件\s+33%/.test(nominationRow))
