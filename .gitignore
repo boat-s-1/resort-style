@@ -6,4 +6,3 @@ node_modules/
 npm-debug.log*
 
 verification/monthly-report/output/
-app/monthly-report-fixture/
