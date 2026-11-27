@@ -5,9 +5,9 @@ import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = new URL('../../', import.meta.url);
-const fixture = new URL('../../app/__monthly_report_fixture/', import.meta.url);
+const fixture = new URL('../../app/monthly-report-fixture/', import.meta.url);
 const out = new URL('../../verification/monthly-report/output/', import.meta.url);
-const url = 'http://127.0.0.1:3108/__monthly_report_fixture';
+const url = 'http://127.0.0.1:3108/monthly-report-fixture';
 let server;
 async function waitReady() {
   for (let i = 0; i < 120; i++) {
@@ -21,7 +21,7 @@ try {
   await cp(new URL('./fixture-page.js.txt', import.meta.url), new URL('./page.js', fixture));
   await mkdir(out, { recursive: true });
   server = spawn('npm', ['run', 'dev', '--', '--hostname', '127.0.0.1', '--port', '3108'], {
-    cwd: base, env: { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+    cwd: base, env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_anonymous_fixture_only' }, stdio: 'inherit',
   });
   await waitReady();
@@ -71,7 +71,9 @@ try {
     format: 'A4', preferCSSPageSize: true, printBackground: true, displayHeaderFooter: false });
   const pdfPath = new URL('monthly-report-anonymous-a4.pdf', out).pathname;
   const info = (await exec('pdfinfo', [pdfPath])).stdout;
-  if (!/Page size:\s+595(?:\.\d+)? x 842(?:\.\d+)? pts/.test(info)) throw Error('PDF is not A4 portrait');
+  const size = info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
+  if (!size || Math.abs(Number(size[1]) - 595.28) > 1 || Math.abs(Number(size[2]) - 841.89) > 1)
+    throw Error('PDF is not A4 portrait');
   const pdfText = (await exec('pdftotext', ['-layout', pdfPath, '-'])).stdout;
   const pages = pdfText.split('\f').filter(p => p.trim());
   if (pages.length < 2) throw Error('Long expense table did not span pages');
