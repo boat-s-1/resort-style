@@ -653,3 +653,4 @@ background:#1185fe;
   .monthly-report-preview th, .monthly-report-preview td { padding: 3px 4px; }
   .monthly-report-preview footer { margin-top: 6px; padding-top: 4px; font-size: 9px; }
 }
+.mypage-room-days{display:flex;gap:8px;overflow-x:auto;padding:8px 0 16px}.mypage-room-days button{min-width:70px;min-height:44px;flex:none}.mypage-room-days [aria-pressed="true"]{background:#0b8da1;color:#fff}.mypage-rooms article{padding:12px 0;border-top:1px solid #e6ded3}.mypage-room-scroll{max-width:100%;overflow-x:auto;padding:8px 0}.mypage-room-axis,.mypage-room-slots{display:grid;grid-template-columns:repeat(38,26px);width:max-content}.mypage-room-axis span{font-size:10px;white-space:nowrap}.mypage-room-slots span{height:36px;border:1px solid #fff}.mypage-room-available{background:#d9f4e6}.mypage-room-busy{background:#d8dce4}.mypage-room-mine{background:#42bad0}.mypage-room-blocked{background:#adadad}
