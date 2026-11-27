@@ -19,3 +19,21 @@ test('23:30 booking overlaps next-calendar-day 00:00 booking; adjacent endpoint 
   assert.equal(scheduleEndTimeOnBusinessDate('2026-11-30','23:00','05:00'),japanTimeStamp('2026-12-01','05:00'));
   assert.equal(scheduleEndTimeOnBusinessDate('2026-11-30','00:00','05:00'),japanTimeStamp('2026-12-01','05:00'));
 });
+
+test('05:00 closes the prior business day and 10:00 opens the next',()=>{
+  const overnight=span(booking('2026-12-01','04:30',30));
+  const boundary=span(booking('2026-12-01','05:00',30));
+  assert.equal(overlaps(overnight,boundary),false);
+  assert.equal(overlaps(span(booking('2026-11-30','23:30',330)),overnight),true);
+  assert.equal(bookingBusinessDate(booking('2026-12-01','05:00',30)),'2026-11-30');
+  assert.equal(bookingBusinessDate(booking('2026-12-01','10:00',30)),'2026-12-01');
+  assert.equal(scheduleEndTimeOnBusinessDate('2026-11-30','23:30','05:00'),japanTimeStamp('2026-12-01','05:00'));
+});
+
+test('anonymous legacy fixture has exactly 12 pairs, without changing records',()=>{
+  const long=span(booking('2030-12-31','10:00',420));
+  const short=Array.from({length:12},(_,n)=>span(booking('2030-12-31',`${String(10+Math.floor(n/2)).padStart(2,'0')}:${n%2?'30':'00'}`,30)));
+  const pairs=[long,...short].flatMap((a,i,rows)=>rows.slice(i+1).filter(b=>overlaps(a,b)));
+  assert.equal(pairs.length,12);
+  assert.equal(overlaps(span(booking('2030-12-31','23:30',90)),span(booking('2031-01-01','00:00',60))),true);
+});
