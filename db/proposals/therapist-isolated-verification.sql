@@ -92,22 +92,22 @@ begin
   end if;
 
   -- Booking timestamps are calendar dates; shifts use the selected business day.
-  perform resort_private.assert_room_free(v_store,2,timestamp '2030-12-31 23:30',
+  perform resort_private.assert_room_free(v_store,2::smallint,timestamp '2030-12-31 23:30',
     timestamp '2031-01-01 00:00',v_other,'booking',gen_random_uuid());
-  perform resort_private.assert_room_free(v_store,2,timestamp '2031-01-01 04:30',
+  perform resort_private.assert_room_free(v_store,2::smallint,timestamp '2031-01-01 04:30',
     timestamp '2031-01-01 05:00',v_other,'booking',gen_random_uuid());
-  perform resort_private.assert_room_free(v_store,2,timestamp '2031-01-01 10:00',
+  perform resort_private.assert_room_free(v_store,2::smallint,timestamp '2031-01-01 10:00',
     timestamp '2031-01-01 10:30',v_other,'booking',gen_random_uuid());
   v_rejected:=false;
   begin
-    perform resort_private.assert_room_free(v_store,2,timestamp '2031-01-01 00:00',
+    perform resort_private.assert_room_free(v_store,2::smallint,timestamp '2031-01-01 00:00',
       timestamp '2031-01-01 00:30',v_other,'booking',gen_random_uuid());
   exception when exclusion_violation then v_rejected:=true;
   end;
   if not v_rejected then raise exception 'month-boundary overlap not detected'; end if;
   v_rejected:=false;
   begin
-    perform resort_private.assert_room_free(v_store,2,timestamp '2031-01-01 05:00',
+    perform resort_private.assert_room_free(v_store,2::smallint,timestamp '2031-01-01 05:00',
       timestamp '2031-01-01 05:30',v_other,'booking',gen_random_uuid());
   exception when invalid_parameter_value then v_rejected:=true;
   end;
@@ -118,7 +118,7 @@ begin
     lateral jsonb_each(to_jsonb(b)) e(k,value)
     where b.id=v_base and k=any(v_allowed);
   v_payload:=jsonb_set(v_payload,'{payment_method}','"card"'::jsonb);
-  update public.resort_customers set uses_resort_style=false where id=v_customer;
+  update public.resort_customers set uses_marron=true, uses_resort_style=false where id=v_customer;
   perform public.resort_admin_save_booking(v_base,v_payload);
   if not exists(select 1 from public.resort_bookings where id=v_base and payment_method='card')
     then raise exception 'accounting update was not saved'; end if;
@@ -151,7 +151,7 @@ begin
   v_schedule:=public.resort_admin_save_schedule(null,
     jsonb_build_object('therapist_id',v_cast,'store_id',v_store,
       'work_date','2031-01-02','start_time','10:00','end_time','12:00',
-      'note','','is_published',true),2);
+      'note','','is_published',true),2::smallint);
   if not exists(select 1 from public.resort_schedule_rooms where schedule_id=v_schedule and room_number=2)
     then raise exception 'room was not saved with schedule'; end if;
   v_rejected:=false;
@@ -159,7 +159,7 @@ begin
     perform public.resort_admin_save_schedule(v_schedule,
       jsonb_build_object('therapist_id',v_other,'store_id',v_store,
         'work_date','2030-12-31','start_time','10:00','end_time','12:00',
-        'note','','is_published',true),1);
+        'note','','is_published',true),1::smallint);
   exception when exclusion_violation then v_rejected:=true;
   end;
   if not v_rejected then raise exception 'conflicting schedule incorrectly succeeded'; end if;

@@ -1,5 +1,7 @@
 -- ISOLATED BRANCH ONLY. Start within 2 seconds of connection A.
--- Expected outcome: SQLSTATE 23P01 after A commits, no B booking persisted.
+-- Expected: one session commits, the other gets SQLSTATE 23P01.
+-- A's 12-second lock hold and this 2-second delay normally make B lose,
+-- but always verify the persisted count rather than assuming connection order.
 \set ON_ERROR_STOP on
 \set VERBOSITY verbose
 select id as admin_id from auth.users where email='pr64-fixture@example.invalid' \gset
