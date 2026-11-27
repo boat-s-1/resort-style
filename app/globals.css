@@ -600,6 +600,8 @@ background:#1185fe;
 .monthly-report-metrics div { border: 1px solid #ddd; padding: 9px; }
 .monthly-report-metrics strong { display: block; font-size: 18px; }
 .monthly-report-preview table { width: 100%; border-collapse: collapse; }
+.monthly-report-table-wrap { overflow-x: auto; }
+.monthly-report-preview h4 { margin: 12px 0 4px; font-size: 13px; }
 .monthly-report-preview th, .monthly-report-preview td { border-bottom: 1px solid #ddd; padding: 5px; text-align: left; overflow-wrap: anywhere; }
 .monthly-report-preview th { background: #f3f6f6; }
 .monthly-report-bar { display: grid; grid-template-columns: 80px 1fr 85px 35px; gap: 8px; align-items: center; margin: 4px 0; break-inside: avoid; }
@@ -608,6 +610,7 @@ background:#1185fe;
 .monthly-report-preview footer { border-top: 1px solid #ddd; margin-top: 18px; padding-top: 8px; color: #666; }
 @media (max-width: 640px) {
   .monthly-report-preview { padding: 12px; overflow-x: auto; }
+  .monthly-report-table-wrap table { min-width: 560px; }
   .monthly-report-metrics { grid-template-columns: repeat(2, 1fr); }
   .monthly-report-bar { grid-template-columns: 75px 1fr 72px 30px; gap: 4px; font-size: 10px; }
 }
@@ -625,4 +628,8 @@ background:#1185fe;
   .monthly-report-preview h3 { break-after: avoid-page; }
   .monthly-report-preview thead { display: table-header-group; }
   .monthly-report-preview tr, .monthly-report-preview .monthly-report-bar { break-inside: avoid-page; }
+  .monthly-report-table-wrap { overflow: visible; }
+  .monthly-report-preview table { table-layout: fixed; font-size: 10px; }
+  .monthly-report-preview th, .monthly-report-preview td { padding: 3px 4px; }
+  .monthly-report-preview footer { margin-top: 6px; padding-top: 4px; font-size: 9px; }
 }
