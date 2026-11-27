@@ -51,14 +51,24 @@ create or replace function resort_private.guard_booking_room()
 returns trigger language plpgsql security definer set search_path='' as $$
 begin
   if new.status in ('cancelled','no_show') or new.room_number is null then return new; end if;
+  -- Do not make a legacy overlap block accounting-only updates, including
+  -- reserved -> completed. Reactivation or a changed occupancy is checked.
+  if tg_op='UPDATE' then
+    if old.status not in ('cancelled','no_show')
+      and old.store_id=new.store_id and old.room_number=new.room_number
+      and old.booking_date=new.booking_date and old.start_time=new.start_time
+      and old.duration_minutes=new.duration_minutes then return new; end if;
+  end if;
   perform resort_private.assert_room_free(new.store_id,new.room_number,
     new.booking_date+new.start_time,
     new.booking_date+new.start_time+new.duration_minutes*interval '1 minute',
     new.therapist_id,'booking',new.id);
   return new;
 end $$;
-create trigger resort_guard_booking_room before insert or update of
-  store_id,room_number,booking_date,start_time,duration_minutes,status,therapist_id
+-- AFTER sees the final duration computed by resort_marron_pricing BEFORE trigger.
+create trigger resort_guard_booking_room after insert or update of
+  store_id,room_number,booking_date,start_time,duration_minutes,status,therapist_id,
+  course_name,extension_minutes,pricing_version
   on public.resort_bookings for each row execute function resort_private.guard_booking_room();
 
 create or replace function resort_private.guard_assigned_room()

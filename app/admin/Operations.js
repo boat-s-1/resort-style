@@ -277,11 +277,9 @@ export default function Operations({ stores, allStores, therapists, schedules, a
     if(brand==='marron') Object.assign(payload,computed,{nomination_code:booking.nomination_code,extension_minutes:Number(booking.extension_minutes),option_fee:Number(booking.option_fee||0),price_adjustment:Number(booking.price_adjustment||0),payout_adjustment:Number(booking.payout_adjustment||0),pricing_version:1});
     if(brand!=='marron') Object.assign(payload,{therapist_payout:resortPayout,total_amount:total,option_fee:Number(booking.option_fee||0),payout_adjustment:payoutAdjustment,price_adjustment:Number(booking.price_adjustment||0),nomination_code:booking.nomination_code||'なし',extension_minutes:Number(booking.extension_minutes||0)});
     delete payload.store_amount;
-    const q = booking.id ? supabase.from('resort_bookings').update(payload).eq('id', booking.id) : supabase.from('resort_bookings').insert(payload);
-    const { error } = await q; notify(error ? `保存できませんでした：${error.message}` : '予約・会計情報を保存しました。');
+    const { error } = await supabase.rpc('resort_admin_save_booking',{p_id:booking.id||null,p_payload:payload});
+    notify(error ? (error.code==='40P01'?'同時更新が競合しました。一覧を更新してから再度保存してください。':`保存できませんでした：${error.message}`) : '予約・会計情報を保存しました。');
     if (!error) {
-      const { error: customerError } = await supabase.from('resort_customers').update({ [brand === 'marron' ? 'uses_marron' : 'uses_resort_style']: true }).eq('id', booking.customer_id);
-      if (customerError) notify('予約は保存しましたが、顧客の利用店舗を更新できませんでした。顧客管理で確認してください。');
       setBooking(newBooking());setBookingCustomerSearch(''); await load();
     } setSaving(false);
   }
@@ -314,7 +312,7 @@ export default function Operations({ stores, allStores, therapists, schedules, a
   }
   async function removeBooking(id) {
     if (!confirm('この予約を削除しますか？')) return;
-    const { error } = await supabase.from('resort_bookings').delete().eq('id', id);
+    const { error } = await supabase.rpc('resort_admin_delete_booking',{p_id:id});
     notify(error ? `削除できませんでした：${error.message}` : '予約を削除しました。'); if (!error) await load();
   }
   function exportCsv() {

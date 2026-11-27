@@ -113,15 +113,11 @@ export default function AdminPage(){
   setSaving(true);
   try{
    const p={therapist_id:scheduleForm.therapist_id,store_id:Number(scheduleForm.store_id),work_date:scheduleForm.work_date,start_time:scheduleForm.start_time||null,end_time:scheduleForm.end_time||null,note:scheduleForm.note,is_published:scheduleForm.is_published};
-   const q=scheduleForm.id?supabase.from('resort_schedules').update(p).eq('id',scheduleForm.id):supabase.from('resort_schedules').upsert(p,{onConflict:'therapist_id,work_date'});
-   const {data,error}=await q.select('id');
-   if(error){setMessage(error.code==='23505'?'その女の子は同じ日に出勤予定が登録済みです。日付か女の子を確認してください。':`出勤予定を保存できませんでした：${error.message}`);return;}
-   if(!data?.length){setMessage('保存結果を確認できませんでした。出勤一覧を確認してから再度お試しください。');return;}
-   const roomQuery=scheduleForm.room_number
-     ?supabase.from('resort_schedule_rooms').upsert({schedule_id:data[0].id,room_number:Number(scheduleForm.room_number)},{onConflict:'schedule_id'})
-     :supabase.from('resort_schedule_rooms').delete().eq('schedule_id',data[0].id);
-   const {error:roomError}=await roomQuery;
-   if(roomError){await loadData();setMessage('出勤予定は保存されましたが、ルーム割当を保存できませんでした：'+roomError.message);return;}
+   const {data,error}=await supabase.rpc('resort_admin_save_schedule',{
+    p_id:scheduleForm.id||null,p_payload:p,p_room:scheduleForm.room_number?Number(scheduleForm.room_number):null
+   });
+   if(error){setMessage(error.code==='40P01'?'同時更新が競合しました。出勤一覧を更新してから再度保存してください。':error.code==='23505'?'その女の子は同じ日に出勤予定が登録済みです。日付か女の子を確認してください。':`出勤予定を保存できませんでした：${error.message}`);return;}
+   if(!data){setMessage('保存結果を確認できませんでした。出勤一覧を確認してから再度お試しください。');return;}
    setScheduleForm(emptySchedule);await loadData();setMessage('出勤店舗・ルームと時間を保存しました。');
   }catch{setMessage('通信に失敗しました。出勤一覧を確認してから再度お試しください。');}finally{setSaving(false)}
  };
