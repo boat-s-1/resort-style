@@ -1,9 +1,20 @@
--- DESIGN DRAFT ONLY. No database has been migrated with this file.
--- Review functions, store permissions, rollback and isolated integration tests
--- before approving application to any database.
+-- Candidate phase A. No database has been migrated with this file.
+-- Run preflight first. Test on an isolated DB before any production approval.
+begin;
+do $$ begin
+  if to_regclass('public.resort_bookings') is null
+    or to_regclass('public.resort_schedule_rooms') is null
+    or to_regclass('public.resort_therapist_sessions') is null
+    or to_regclass('public.resort_admins') is null
+    or to_regnamespace('resort_private') is null then
+    raise exception '既存スキーマの依存関係が不足しています';
+  end if;
+end $$;
 
 create table resort_private.work_progress (
-  booking_id uuid primary key references public.resort_bookings(id) on delete restrict,
+  -- Intentionally no FK: existing admin booking deletion must keep working.
+  -- The orphaned work record remains for audit, but work_state joins live bookings.
+  booking_id uuid primary key,
   therapist_id uuid not null references public.resort_therapists(id),
   store_id smallint not null references public.resort_stores(id),
   started_at timestamptz not null,
@@ -15,7 +26,7 @@ revoke all on resort_private.work_progress from public, anon, authenticated;
 
 create table resort_private.work_audit (
   id bigint generated always as identity primary key,
-  booking_id uuid not null references public.resort_bookings(id) on delete restrict,
+  booking_id uuid not null,
   event_type text not null check (event_type in ('start','finish','staff_correction')),
   recorded_at timestamptz not null default now(),
   actor_therapist_id uuid references public.resort_therapists(id),
@@ -44,7 +55,7 @@ revoke all on resort_private.room_blocks from public, anon, authenticated;
 
 create table resort_private.work_notices (
   id bigint generated always as identity primary key,
-  booking_id uuid not null references public.resort_bookings(id) on delete restrict,
+  booking_id uuid not null,
   store_id smallint not null references public.resort_stores(id),
   kind text not null check (kind in ('start','finish')),
   created_at timestamptz not null default now(),
@@ -175,7 +186,7 @@ begin
           select 1 from public.resort_schedules s
           join public.resort_schedule_rooms sr on sr.schedule_id = s.id
           where s.store_id = q.id and sr.room_number = q.room_number
-            and s.therapist_id = v_therapist and s.is_published and s.work_date = p_day
+            and s.therapist_id = v_therapist and s.work_date = p_day
             and (s.work_date + s.start_time + case when s.start_time < time '10:00' then interval '1 day' else interval '0 day' end) < q.slot_start + interval '30 minutes'
             and (s.work_date + s.end_time + case when s.end_time < time '10:00' then interval '1 day' else interval '0 day' end
               + case when s.end_time <= s.start_time and s.end_time >= time '10:00' then interval '1 day' else interval '0 day' end) > q.slot_start
@@ -190,7 +201,7 @@ begin
           select 1 from public.resort_schedules s
           join public.resort_schedule_rooms sr on sr.schedule_id = s.id
           where s.store_id = q.id and sr.room_number = q.room_number
-            and s.is_published and s.work_date = p_day
+            and s.work_date = p_day
             and (s.work_date + s.start_time + case when s.start_time < time '10:00' then interval '1 day' else interval '0 day' end) < q.slot_start + interval '30 minutes'
             and (s.work_date + s.end_time + case when s.end_time < time '10:00' then interval '1 day' else interval '0 day' end
               + case when s.end_time <= s.start_time and s.end_time >= time '10:00' then interval '1 day' else interval '0 day' end) > q.slot_start
@@ -338,3 +349,4 @@ returns jsonb language sql security invoker set search_path = '' as $$
 $$;
 revoke all on function public.resort_work_state(text) from public, anon, authenticated;
 grant execute on function public.resort_work_state(text) to anon, authenticated;
+commit;
