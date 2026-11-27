@@ -91,18 +91,53 @@ try {
       throw Error(`Expense table heading missing on page ${index + 1}`);
   }
   if (pages.at(-1).trim().startsWith('本レポートは')) throw Error('Footer-only PDF page');
-  await page.emulateMedia({ media: 'screen' });
-  await page.getByRole('checkbox', { name: '経費明細' }).uncheck();
-  if (await page.locator('.monthly-report-preview').getByRole('heading', { name: '経費明細' }).count())
-    throw Error('PDF item switch did not hide expense details');
-  if (!await page.locator('.monthly-report-preview').getByRole('heading', { name: '女の子別F・P・R集計' }).count())
-    throw Error('PDF item switch hid nomination section');
-  await page.emulateMedia({ media: 'print' });
-  await page.pdf({ path: new URL('monthly-report-selected-sections-a4.pdf', out).pathname,
-    format: 'A4', preferCSSPageSize: true, printBackground: true, displayHeaderFooter: false });
-  const selectedText = (await exec('pdftotext', ['-layout', new URL('monthly-report-selected-sections-a4.pdf', out).pathname, '-'])).stdout;
-  if (selectedText.includes('経費明細\n') || !selectedText.includes('女の子別F・P・R集計'))
-    throw Error('PDF item selection was not reflected in output');
+  const allSections = ['売上・給与・経費・利益', '日別売上グラフ', 'セラピスト別成績・稼働率',
+    '新規・リピート・指名・コース別', '成約・不成約', '女の子別F・P・R集計', '経費内訳', '経費明細'];
+  async function selectedPdf(name, enabled, present, absent, detailRows) {
+    await page.emulateMedia({ media: 'screen' });
+    for (const label of allSections)
+      await page.getByRole('checkbox', { name: label, exact: true }).setChecked(enabled.includes(label));
+    const visibleHeadings = await page.locator('.monthly-report-preview h3').allTextContents();
+    for (const heading of present) if (!visibleHeadings.includes(heading)) throw Error(`${name}: preview missing ${heading}`);
+    for (const heading of absent) if (visibleHeadings.includes(heading)) throw Error(`${name}: preview includes ${heading}`);
+    await page.emulateMedia({ media: 'print' });
+    const layout = await page.evaluate(() => ({ controls: getComputedStyle(document.querySelector('.monthly-report-controls')).display,
+      overflow: [...document.querySelectorAll('.monthly-report-preview table')].some(t => t.scrollWidth > t.clientWidth + 1) }));
+    if (layout.controls !== 'none' || layout.overflow) throw Error(`${name}: print layout ${JSON.stringify(layout)}`);
+    const path = new URL(`${name}-a4.pdf`, out).pathname;
+    await page.pdf({ path, format: 'A4', preferCSSPageSize: true, printBackground: true, displayHeaderFooter: false });
+    const info = (await exec('pdfinfo', [path])).stdout;
+    const size = info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
+    if (!size || Math.abs(Number(size[1]) - 595.28) > 1 || Math.abs(Number(size[2]) - 841.89) > 1)
+      throw Error(`${name}: not A4 portrait`);
+    const pdfText = (await exec('pdftotext', ['-layout', path, '-'])).stdout;
+    const pdfPages = pdfText.split('\f').filter(p => p.trim());
+    if (pdfText.split('\f').some((p, i, all) => i < all.length - 1 && !p.trim()) ||
+        pdfPages.at(-1)?.trim().startsWith('本レポートは')) throw Error(`${name}: blank or footer-only page`);
+    for (const heading of present) if (!pdfText.includes(heading)) throw Error(`${name}: PDF missing ${heading}`);
+    for (const heading of absent) if (pdfText.includes(heading)) throw Error(`${name}: PDF includes ${heading}`);
+    if (name === 'fpr-only' && !/1件\s+1件\s+1件\s+3件\s+1件\s+33%/.test(pdfText))
+      throw Error('F/P/R counts or R rate missing from selected PDF');
+    if (name === 'expenses-only' && !pdfText.includes('¥285,000'))
+      throw Error('Expense total missing from selected PDF');
+    if (pdfText.includes('集計してプレビュー') || pdfText.includes('PDFに出力する項目'))
+      throw Error(`${name}: controls leaked into PDF`);
+    if (detailRows) {
+      const detail = pdfText.split('経費明細\n', 2)[1];
+      if (!detail) throw Error(`${name}: expense detail section missing`);
+      for (let i = 1; i <= 75; i++)
+        if (!detail.includes(`検証用経費${String(i).padStart(2, '0')}`)) throw Error(`${name}: missing expense ${i}`);
+      const detailPages = detail.split('\f');
+      for (const [index, pdfPage] of detailPages.entries())
+        if (/検証用経費\d+/.test(pdfPage) && !pdfPage.includes('日付・計上月'))
+          throw Error(`${name}: detail heading missing on page ${index + 1}`);
+    }
+    console.log(`${name}: ${pdfPages.length} A4 pages`);
+  }
+  await selectedPdf('fpr-only', ['女の子別F・P・R集計'], ['女の子別F・P・R集計'],
+    ['経費内訳', '経費明細', '売上と利益'], false);
+  await selectedPdf('expenses-only', ['経費内訳', '経費明細'], ['経費内訳', '経費明細'],
+    ['女の子別F・P・R集計', '売上と利益'], true);
   console.log('PDF pages', pages.length);
   if (externalRequests) throw Error(`Blocked ${externalRequests} external requests`);
   await browser.close();
