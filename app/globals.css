@@ -608,6 +608,26 @@ background:#1185fe;
 .monthly-report-bar div { height: 13px; background: #e9f3f4; }
 .monthly-report-bar i { display: block; height: 100%; background: #0c8c9e; }
 .monthly-report-preview footer { border-top: 1px solid #ddd; margin-top: 18px; padding-top: 8px; color: #666; }
+.mypage-shell { max-width: 980px; }
+.mypage-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.mypage-summary h2 { font-size: clamp(22px, 3vw, 30px); margin: 8px 0; }
+.mypage-next-shift { margin-bottom: 16px; }
+.mypage-booking { padding: 16px 0; border-bottom: 1px solid #eee; }
+.mypage-booking p { margin: 7px 0; }
+.mypage-work-actions { display: flex; gap: 10px; margin: 12px 0 4px; }
+.mypage-work-actions button { flex: 1; min-height: 52px; font-weight: 700; }
+@media (max-width: 700px) {
+  .mypage-shell { padding-inline: 12px; }
+  .mypage-header { align-items: flex-start; gap: 8px; }
+  .mypage-header h1 { font-size: 21px; }
+  .mypage-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mypage-summary article:first-child { grid-column: 1 / -1; }
+  .mypage-summary article { padding: 14px; }
+  .mypage-work-actions { flex-direction: column; }
+  .mypage-work-actions button { min-height: 56px; }
+  .mypage-shell .admin-subtabs { overflow-x: auto; flex-wrap: nowrap; }
+  .mypage-shell .admin-subtabs button { flex: 0 0 auto; min-height: 48px; }
+}
 @media (max-width: 640px) {
   .monthly-report-preview { padding: 12px; overflow-x: auto; }
   .monthly-report-table-wrap table { min-width: 560px; }
