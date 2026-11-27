@@ -39,7 +39,9 @@ try {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.locator('.monthly-report-preview').waitFor();
   await page.screenshot({ path: new URL('desktop-diagnostic.png', out).pathname, fullPage: true });
-  const expenseRows = await page.locator('.monthly-report-preview tbody tr').filter({ hasText: '検証用経費' }).count();
+  const expenseRows = await page.locator('.monthly-report-preview section')
+    .filter({ has: page.getByRole('heading', { name: '経費明細', exact: true }) })
+    .locator('tbody tr').count();
   console.log('Expense detail rows:', expenseRows, 'summary:',
     (await page.locator('.monthly-report-preview').innerText()).slice(0, 500));
   if (expenseRows !== 75) throw Error(`Expense details showed ${expenseRows} of 75 rows`);
