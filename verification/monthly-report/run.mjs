@@ -97,10 +97,11 @@ try {
     throw Error('PDF item switch did not hide expense details');
   if (!await page.locator('.monthly-report-preview').getByRole('heading', { name: '女の子別F・P・R集計' }).count())
     throw Error('PDF item switch hid nomination section');
+  await page.emulateMedia({ media: 'print' });
   await page.pdf({ path: new URL('monthly-report-selected-sections-a4.pdf', out).pathname,
     format: 'A4', preferCSSPageSize: true, printBackground: true, displayHeaderFooter: false });
   const selectedText = (await exec('pdftotext', ['-layout', new URL('monthly-report-selected-sections-a4.pdf', out).pathname, '-'])).stdout;
-  if (selectedText.includes('検証用経費75') || !selectedText.includes('女の子別F・P・R集計'))
+  if (selectedText.includes('経費明細\n') || !selectedText.includes('女の子別F・P・R集計'))
     throw Error('PDF item selection was not reflected in output');
   console.log('PDF pages', pages.length);
   if (externalRequests) throw Error(`Blocked ${externalRequests} external requests`);
