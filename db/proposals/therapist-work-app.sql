@@ -90,6 +90,9 @@ begin
   select * into v_progress from resort_private.work_progress
     where booking_id = p_booking_id for update;
   if p_action = 'start' and v_progress.booking_id is null then
+    if v_booking.status <> 'reserved' then
+      raise exception '開始できる予約ではありません' using errcode = '22023';
+    end if;
     insert into resort_private.work_progress(booking_id, therapist_id, store_id, started_at)
       values (p_booking_id, v_therapist, v_booking.store_id, v_stamp)
       returning * into v_progress;
@@ -305,3 +308,33 @@ returns jsonb language sql security invoker set search_path = '' as $$
 $$;
 revoke all on function public.resort_correct_work(uuid, timestamptz, timestamptz, text) from public, anon, authenticated;
 grant execute on function public.resort_correct_work(uuid, timestamptz, timestamptz, text) to authenticated;
+
+create or replace function resort_private.work_state(p_token text)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare
+  v_therapist uuid;
+  v_today date := (now() at time zone 'Asia/Tokyo')::date
+    - case when (now() at time zone 'Asia/Tokyo')::time <= time '05:00' then 1 else 0 end;
+  v_result jsonb;
+begin
+  select s.therapist_id into v_therapist
+    from public.resort_therapist_sessions s
+    join public.resort_therapist_accounts a on a.therapist_id = s.therapist_id and a.is_active
+    where s.token_hash = encode(extensions.digest(p_token, 'sha256'), 'hex') and s.expires_at > now();
+  if v_therapist is null then raise exception '再ログインしてください' using errcode = '28000'; end if;
+  select coalesce(jsonb_object_agg(p.booking_id,
+    jsonb_build_object('started_at', p.started_at, 'ended_at', p.ended_at)), '{}'::jsonb)
+    into v_result from resort_private.work_progress p
+    join public.resort_bookings b on b.id = p.booking_id
+    where p.therapist_id = v_therapist and b.therapist_id = v_therapist
+      and (b.booking_date - case when b.start_time <= time '05:00' then 1 else 0 end) = v_today;
+  return v_result;
+end $$;
+revoke all on function resort_private.work_state(text) from public, anon, authenticated;
+grant execute on function resort_private.work_state(text) to anon, authenticated;
+create or replace function public.resort_work_state(p_token text)
+returns jsonb language sql security invoker set search_path = '' as $$
+  select resort_private.work_state(p_token)
+$$;
+revoke all on function public.resort_work_state(text) from public, anon, authenticated;
+grant execute on function public.resort_work_state(text) to anon, authenticated;
