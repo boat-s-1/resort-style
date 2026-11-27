@@ -3,7 +3,7 @@
 -- These fixtures deliberately contain no real person, customer or credential.
 begin;
 do $$
-declare v_store smallint:=30000; v_admin uuid:=gen_random_uuid(); v_cast uuid; v_customer uuid;
+declare v_store smallint:=30000; v_admin uuid:=gen_random_uuid(); v_cast uuid; v_other uuid; v_customer uuid;
         v_base uuid; v_index integer;
 begin
   insert into auth.users(id,instance_id,aud,role,email,encrypted_password,created_at,updated_at)
@@ -15,7 +15,16 @@ begin
   insert into public.resort_therapists(name,slug,brand_codes)
     values('匿名セラピスト','pr64-fixture-therapist',array['resort-style']) returning id into v_cast;
   insert into public.resort_therapists(name,slug,brand_codes)
-    values('匿名セラピストB','pr64-fixture-therapist-b',array['resort-style']);
+    values('匿名セラピストB','pr64-fixture-therapist-b',array['resort-style']) returning id into v_other;
+  -- These are inert fixture credentials for SQL-only tests, not real login users.
+  insert into public.resort_therapist_accounts(therapist_id,login_id,password_hash,is_active)
+  values (v_cast,'pr64-fixture-a','not-a-login-hash',true),
+    (v_other,'pr64-fixture-b','not-a-login-hash',true);
+  insert into public.resort_therapist_sessions(token_hash,therapist_id,expires_at)
+  values
+    (encode(extensions.digest('pr64-fixture-token-a','sha256'),'hex'),v_cast,now()+interval '1 hour'),
+    (encode(extensions.digest('pr64-fixture-token-b','sha256'),'hex'),v_other,now()+interval '1 hour'),
+    (encode(extensions.digest('pr64-fixture-expired','sha256'),'hex'),v_cast,now()-interval '1 hour');
   insert into public.resort_customers(name,phone)
     values('匿名顧客','00000000000') returning id into v_customer;
   -- One long booking and twelve nonoverlapping 30-minute bookings yield exactly

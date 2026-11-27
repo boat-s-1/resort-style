@@ -104,7 +104,9 @@
 
 ## 隔離DB検証の実行計画（未実施）
 
-対象は Supabase `bwgpogwkycjcwlvtrhan` が属する `boat-strike` 組織。組織プランは Pro、対象プロジェクトの既存Branchは0件と読み取り専用で確認した。組織のUsage画面には「現在は超過分を請求しない」旨の説明があるが、Branch compute は Spend Cap の対象外であり、組織請求の現在額・支払い枠をこの確認だけで保証しない。
+実行直前のチェック、匿名テストアカウント、SQL順序、2接続の同時操作、35/45/55分の停止・削除確認は [`docs/THERAPIST_ISOLATED_DB_RUNBOOK.md`](THERAPIST_ISOLATED_DB_RUNBOOK.md) に記録。検証とBranch作成はまだ行っていない。
+
+対象は Supabase `bwgpogwkycjcwlvtrhan` が属する `boat-strike` 組織。組織プランは Pro、対象プロジェクトの既存Branchは0件と読み取り専用で確認した。2026-11-27のBillingではSpend Cap有効、現時点の請求$30.45、予測$69.82、Branching $4.73。Usageでは通常のPro枠未超過、Branching 352時間。Branch computeはSpend Capの対象外であり、新規Branchが無料になる根拠にはならない。
 
 | 方式 | 費用と隔離 | 今回の扱い |
 | --- | --- | --- |
